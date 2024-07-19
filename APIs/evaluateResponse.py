@@ -9,7 +9,7 @@ openai.api_key = os.getenv("OPEN_AI_API_KEY")
 
 def evaluate_response(prompt, user_response):
     gpt_prompt = f"""
-    Here is a coding problem and a user's response. Evaluate the response and provide feedback on a scale from 1-5, with 1 being "Needs a lot of work" to 5 being "Excellent"
+    Here is a coding problem and a user's response. Evaluate the response and provide feedback on a scale from 1-5, with 1 being "Needs a lot of work" to 5 being "Excellent"      
 
     Problem:
     {prompt}
@@ -17,7 +17,7 @@ def evaluate_response(prompt, user_response):
     User's Response:
     {user_response}
 
-    Provide detailed feedback on the correctness and quality of the user's response.
+    Provide detailed feedback on the correctness and quality of the user's response . 
     """
 
     response = openai.ChatCompletion.create(
