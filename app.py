@@ -2,45 +2,22 @@ from flask import Flask, request, jsonify
 import sqlitecloud
 import os
 from dotenv import load_dotenv
+import db_funcs
 
 # Function Imports
 from getLeetCode import getLeetCodeInfo
 from generateProblems import generate_problem
+from evaluateResponse import evaluate_response
 
 load_dotenv()
 
 app = Flask(__name__)
 
-# Configure SQLiteCloud connection
-DATABASE_URL = os.getenv('SQLITECLOUD_CONN_STRING')
-DATABASE_NAME = os.getenv('SQLITECLOUD_DB_NAME')
-
-def get_connection():
-    conn = sqlitecloud.connect(DATABASE_URL)
-    conn.execute(f"USE DATABASE {DATABASE_NAME}")
-    return conn
-
-# This function will create the necessary tables if they don't exist
-def initialize_database():
-    conn = get_connection()
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            uid TEXT PRIMARY KEY,
-            email TEXT UNIQUE NOT NULL,
-            leetcode_username TEXT UNIQUE,
-            user_level_description TEXT NOT NULL,
-            overall_ratio FLOAT,
-            easy_ratio FLOAT,
-            medium_ratio FLOAT,
-            hard_ratio FLOAT,
-            current_goal TEXT
-        )
-    ''')
-    conn.close()
 
 @app.route('/api/message', methods=['GET'])
 def get_message():
     return jsonify({'message': 'Hello from Flask!'})
+
 
 @app.route('/api/createUser', methods=['POST'])
 def create_user():
@@ -54,24 +31,17 @@ def create_user():
     easy_ratio, medium_ratio, hard_ratio, overall_ratio = getLeetCodeInfo(leetcode_username)
     print("*****************\n", easy_ratio, "", medium_ratio, "", hard_ratio, "", overall_ratio, "\n*****************")
 
-    conn = get_connection()
-    conn.execute('''
-        INSERT INTO users (uid, email, leetcode_username, user_level_description, overall_ratio, easy_ratio, medium_ratio, hard_ratio)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (uid, email, leetcode_username, user_level_description, overall_ratio, easy_ratio, medium_ratio, hard_ratio))
-    conn.close()
+    db_funcs.add_user(uid, email, leetcode_username, user_level_description, overall_ratio, easy_ratio, medium_ratio, hard_ratio)
 
     return jsonify({'message': 'User created successfully'}), 201
+
 
 @app.route('/api/generateProblem', methods=['POST'])
 def generate_problem_endpoint():
     data = request.get_json()
     uid = data['uid']
 
-    conn = get_connection()
-    cursor = conn.execute('SELECT * FROM users WHERE uid = ?', (uid,))
-    user = cursor.fetchone()
-    conn.close()
+    user = db_funcs.get_user_id(uid)
     
     print(user)
     
@@ -89,6 +59,26 @@ def generate_problem_endpoint():
     problem = generate_problem(user_level_description, easy_ratio, medium_ratio, hard_ratio, overall_ratio)
     return jsonify({'problem': problem})
 
+
+@app.route('/api/evaluateResponse', methods=['POST'])
+def evaluate_response_endpoint():
+    data = request.get_json()
+    problem = data['problem']
+    response = data['userResponse']
+    uid = data['uid']
+    # print(uid)
+
+    if problem and response and uid:
+        evaluation = evaluate_response(problem, response)
+
+        # ADD FUNCTION TO SAVE TO DATABASE HERE paramaters should be (uid, problem, response, evaluation)
+        db_funcs.update_history(uid, problem, response, evaluation)
+
+        return jsonify({'evaluation': evaluation})
+
+    return jsonify({'evaluation': "error"})
+
+
 if __name__ == '__main__':
-    initialize_database()
+    db_funcs.initialize_database()
     app.run(debug=True, port=5000)
