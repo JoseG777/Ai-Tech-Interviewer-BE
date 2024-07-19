@@ -32,7 +32,7 @@ def create_user():
 @app.route("/api/newUser", methods=["POST"])
 def new_user():
     data = request.get_json()
-    print(f"Recieved data: {data}")
+    # print(f"Recieved data: {data}")
     uid = data["uid"]
     leetcode_username = data["leetcode_username"]
     coding_level = data["coding_level"]
@@ -46,7 +46,7 @@ def new_user():
             leetcode_username
         )
         
-    print(f"Updating user: {uid}, {leetcode_username}, {coding_level}, {goal}, {upcoming_interview}, {overall_ratio}, {easy_ratio}, {medium_ratio}, {hard_ratio}")
+    # print(f"Updating user: {uid}, {leetcode_username}, {coding_level}, {goal}, {upcoming_interview}, {overall_ratio}, {easy_ratio}, {medium_ratio}, {hard_ratio}")
 
     User.update_user(
         uid,

@@ -69,7 +69,7 @@ class User:
         medium_ratio=None,
         hard_ratio=None,
     ):
-        print(f"Executing update for user {uid}")
+        # print(f"Executing update for user {uid}")
         with DatabaseConnection() as conn:
             conn.execute(
                 """
@@ -89,7 +89,8 @@ class User:
                     uid,
                 ),
             )
-            print(f"Update executed successfully for user {uid}")
+
+            # print(f"Update executed successfully for user {uid}")
             conn.commit()
 
 
