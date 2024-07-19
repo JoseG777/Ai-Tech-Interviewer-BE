@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import database.db_funcs as db_funcs
+from flask_cors import CORS
 
 # Function Imports  
 from APIs.getLeetCode import getLeetCodeInfo
@@ -8,6 +9,7 @@ from APIs.evaluateResponse import evaluate_response
 
 app = Flask(__name__)
 
+CORS(app, resources={r"/api/*": {"origins": "https://ai-technical-interviewer.web.app"}})
 
 @app.route("/api/message", methods=["GET"])
 def get_message():
