@@ -6,8 +6,8 @@ from datetime import datetime
 load_dotenv()
 
 # Configure SQLiteCloud connection
-DATABASE_URL = os.getenv('SQLITECLOUD_CONN_STRING')
-DATABASE_NAME = os.getenv('SQLITECLOUD_DB_NAME')
+DATABASE_URL = os.getenv("SQLITECLOUD_CONN_STRING")
+DATABASE_NAME = os.getenv("SQLITECLOUD_DB_NAME")
 
 
 def get_connection():
@@ -19,7 +19,8 @@ def get_connection():
 # This function will create the necessary tables if they don't exist
 def initialize_database():
     conn = get_connection()
-    conn.execute('''
+    conn.execute(
+        """
         CREATE TABLE IF NOT EXISTS users (
             uid TEXT PRIMARY KEY NOT NULL,
             email TEXT UNIQUE NOT NULL,
@@ -33,13 +34,15 @@ def initialize_database():
             upcoming_interview TEXT,
             signup_date TEXT NOT NULL DEFAULT (datetime('now'))
         )
-    ''')
+    """
+    )
 
     conn.commit()
 
     # Creates User History table
     # Note: Delete Cascade allows for any history saved for a deleted user will also be deleted.
-    conn.execute('''
+    conn.execute(
+        """
         CREATE TABLE IF NOT EXISTS userhistory (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id TEXT NOT NULL,
@@ -49,7 +52,8 @@ def initialize_database():
         saved_date TEXT NOT NULL DEFAULT (datetime('now')),
         FOREIGN KEY (user_id) REFERENCES users (uid) ON DELETE CASCADE
         )
-    ''')
+    """
+    )
 
     conn.commit()
     conn.close()
@@ -70,11 +74,13 @@ def add_user(user_id, email, lc, level, ovr, er, mr, hr):
     """
     conn = get_connection()
     signup_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    conn.execute('''
+    conn.execute(
+        """
         INSERT INTO users (uid, email, leetcode_username, user_level_description, overall_ratio,
             easy_ratio, medium_ratio, hard_ratio, current_goal, upcoming_interview, signup_date) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-(user_id, email, lc, level, ovr, er, mr, hr, None, None, signup_time))
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (user_id, email, lc, level, ovr, er, mr, hr, None, None, signup_time),
+    )
 
     conn.commit()
     conn.close()
@@ -82,11 +88,12 @@ def add_user(user_id, email, lc, level, ovr, er, mr, hr):
 
 def get_user_id(uid):
     conn = get_connection()
-    cursor = conn.execute('SELECT * FROM users WHERE uid = ?', (uid,))
+    cursor = conn.execute("SELECT * FROM users WHERE uid = ?", (uid,))
     user = cursor.fetchone()
     conn.close()
 
     return user
+
 
 def update_history(id, problem, response, evaluation):
 
@@ -94,6 +101,8 @@ def update_history(id, problem, response, evaluation):
     save_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     cur = conn.cursor()
-    cur.execute('''INSERT INTO userhistory 
-        (user_id, user_question, user_response, saved_response, saved_date) VALUES (?, ?, ?, ?)''',
-    (id, problem, response, evaluation, save_date))
+    cur.execute(
+        """INSERT INTO userhistory 
+        (user_id, user_question, user_response, saved_response, saved_date) VALUES (?, ?, ?, ?, ?)""",
+        (id, problem, response, evaluation, save_date),
+    )

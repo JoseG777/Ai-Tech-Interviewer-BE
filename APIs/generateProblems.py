@@ -4,9 +4,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-openai.api_key = os.getenv('OPEN_AI_API_KEY')
+openai.api_key = os.getenv("OPEN_AI_API_KEY")
 
-def generate_problem(user_level_description, easy_ratio, medium_ratio, hard_ratio, overall_ratio):
+
+def generate_problem(
+    user_level_description, easy_ratio, medium_ratio, hard_ratio, overall_ratio
+):
     gpt_prompt = f"""
     Based on the following user profile, generate a coding problem. The problem should include the problem description, specifications, and a bare-bones function or class definition if necessary.
     
@@ -27,5 +30,3 @@ def generate_problem(user_level_description, easy_ratio, medium_ratio, hard_rati
     recommendation = response.choices[0].message["content"].strip()
 
     return recommendation
-
-
