@@ -9,7 +9,7 @@ from APIs.evaluateResponse import evaluate_response
 
 app = Flask(__name__)
 
-CORS(app, resources={r"/api/*": {"origins": "https://ai-technical-interviewer.web.app"}})
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 @app.route("/api/message", methods=["GET"])
 def get_message():
