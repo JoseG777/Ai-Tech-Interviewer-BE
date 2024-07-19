@@ -27,6 +27,7 @@ def display_all_users():
                       f"User Level Description: {user[3]}, Overall Ratio: {user[4]}, "
                       f"Easy Ratio: {user[5]}, Medium Ratio: {user[6]}, Hard Ratio: {user[7]}, "
                       f"Current Goal: {user[8]}")
+        # , Upcoming Interview: {user[9]}, Signup: {user[10]}
         else:
             print("No users found.")
     except Exception as e:
