@@ -21,38 +21,29 @@ def create_user():
     data = request.get_json()
     uid = data["uid"]
     email = data["email"]
-    leetcode_username = data["leetcodeUsername"]
-    user_level_description = data["levelDescription"]
-
-    # Fetching LeetCode stats
-    easy_ratio, medium_ratio, hard_ratio, overall_ratio = getLeetCodeInfo(
-        leetcode_username
-    )
-    print(
-        "*****************\n",
-        easy_ratio,
-        "",
-        medium_ratio,
-        "",
-        hard_ratio,
-        "",
-        overall_ratio,
-        "\n*****************",
-    )
+    leetcode_username = "N/A"
+    user_level_description = "N/A"
+ 
 
     db_funcs.add_user(
         uid,
         email,
         leetcode_username,
-        user_level_description,
-        overall_ratio,
-        easy_ratio,
-        medium_ratio,
-        hard_ratio,
+        user_level_description
     )
 
     return jsonify({"message": "User created successfully"}), 201
 
+
+@app.route("/api/initialQuestions", methods=["POST"])
+def new_user_info():
+    '''
+    easy_ratio, medium_ratio, hard_ratio, overall_ratio = getLeetCodeInfo(
+        leetcode_username
+    )
+    '''
+
+    pass
 
 @app.route("/api/generateProblem", methods=["POST"])
 def generate_problem_endpoint():

@@ -59,7 +59,7 @@ def initialize_database():
     conn.close()
 
 
-def add_user(user_id, email, lc, level, ovr, er, mr, hr):
+def add_user(user_id, email, lc, level):
     """
     Adding user into database based on given info and firebase authentication
     :param user_id: user's id from firebase
@@ -79,7 +79,7 @@ def add_user(user_id, email, lc, level, ovr, er, mr, hr):
         INSERT INTO users (uid, email, leetcode_username, user_level_description, overall_ratio,
             easy_ratio, medium_ratio, hard_ratio, current_goal, upcoming_interview, signup_date) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (user_id, email, lc, level, ovr, er, mr, hr, None, None, signup_time),
+        (user_id, email, lc, level, None, None, None, None, None, None, signup_time),
     )
 
     conn.commit()
