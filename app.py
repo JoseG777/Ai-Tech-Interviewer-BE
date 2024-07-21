@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from database.models import User, UserHistory
 
-# Function Imports
+# Function Imports 
 from APIs.getLeetCode import getLeetCodeInfo
 from APIs.generateProblems import generate_problem
 from APIs.evaluateResponse import evaluate_response
@@ -11,7 +11,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 
-@app.route("/api/message", methods=["GET"])
+@app.route("/api/message", methods=["GET"]) 
 def get_message():
     return jsonify({"message": "Hello from Flask!"})
 
