@@ -9,15 +9,20 @@ openai.api_key = os.getenv("OPEN_AI_API_KEY")
 
 def evaluate_response(prompt, user_response):
     gpt_prompt = f"""
-    Here is a coding problem and a user's response. Evaluate the response and provide feedback on a scale from 1-5, with 1 being "Needs a lot of work" to 5 being "Excellent"      
+    Here is a coding problem and a user's response. Evaluate the response and provide feedback on a scale from 1-5, with 1 being "Needs a lot of work" to 5 being "Excellent". 
+
+    Do not grade on function signature or class structure as those are given to the user. 
+
+    Structure your feedback as follows:
+    Evaluation: [Describe how they did overall]
+    Feedback: [Provide detailed feedback on how they can improve]
+    Final Grade: [Give a single number out of 5]
 
     Problem:
     {prompt}
 
     User's Response:
     {user_response}
-
-    Provide detailed feedback on the correctness and quality of the user's response . 
     """
 
     response = openai.ChatCompletion.create(
@@ -30,6 +35,7 @@ def evaluate_response(prompt, user_response):
 
 # Example for proof of concept
 
+'''
 p = f"""
     You are given a list of words. Your task is to find the top k most frequent words in the list. If two words have the same frequency, the word with the lower alphabetical order comes first.
 
@@ -66,6 +72,35 @@ def top_k_frequent_words(words: list[str], k: int) -> list[str]:
     # Your code here
 
 Sample Usage:
-
+ 
+ 
 print(top_k_frequent_words(["the", "daily", "daily", "coding", "coding", "coding", "problem", "daily"], 3))
-    """
+
+"""
+
+a = f"""
+from collections import Counter
+import heapq
+
+def top_k_frequent_words(words: list[str], k: int) -> list[str]:
+    # Step 1: Count the frequency of each word
+    word_count = Counter(words)
+    
+    # Step 2: Use a heap to keep track of the top k frequent words
+    # The heap will store tuples in the form (-frequency, word)
+    # The negative frequency is used to create a max-heap based on frequency
+    heap = []
+    for word, freq in word_count.items():
+        heapq.heappush(heap, (-freq, word))
+    
+    # Step 3: Extract the top k elements from the heap
+    result = []
+    for _ in range(k):
+        result.append(heapq.heappop(heap)[1])
+    
+    return result
+
+"""
+
+print(evaluate_response(p, a))
+'''

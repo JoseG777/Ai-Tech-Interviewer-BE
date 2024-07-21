@@ -8,7 +8,12 @@ openai.api_key = os.getenv("OPEN_AI_API_KEY")
 
 
 def generate_problem(
-    user_level_description, easy_ratio, medium_ratio, hard_ratio, overall_ratio, language
+    user_level_description,
+    easy_ratio,
+    medium_ratio,
+    hard_ratio,
+    overall_ratio,
+    language,
 ):
     gpt_prompt = f"""
         Generate a {language} coding problem tailored to a user's profile and skill level. Ensure the problem is clear, concise, returned with NO MARKDOWN, and follows this structure:
@@ -35,7 +40,6 @@ def generate_problem(
         
         Ensure the problem fits their skill set. If specific data structures or custom objects are needed, provide necessary class definitions or additional code. Make sure the problem is similar to a standard LeetCode problem and appropriately challenging. ONLY INCLUDE SPECIFIED STRUCTURE, NOTHING ELSE.
     """
-
 
     response = openai.ChatCompletion.create(
         model="gpt-4o", messages=[{"role": "user", "content": gpt_prompt}]

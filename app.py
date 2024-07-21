@@ -40,12 +40,12 @@ def new_user():
     upcoming_interview = data["upcoming_interview"]
 
     overall_ratio, easy_ratio, medium_ratio, hard_ratio = None, None, None, None
-    
+
     if leetcode_username != "N/A":
         overall_ratio, easy_ratio, medium_ratio, hard_ratio = getLeetCodeInfo(
             leetcode_username
         )
-        
+
     # print(f"Updating user: {uid}, {leetcode_username}, {coding_level}, {goal}, {upcoming_interview}, {overall_ratio}, {easy_ratio}, {medium_ratio}, {hard_ratio}")
 
     User.update_user(
@@ -81,7 +81,12 @@ def generate_problem_endpoint():
     overall_ratio = user[7]
 
     problem = generate_problem(
-        user_level_description, easy_ratio, medium_ratio, hard_ratio, overall_ratio, language
+        user_level_description,
+        easy_ratio,
+        medium_ratio,
+        hard_ratio,
+        overall_ratio,
+        language,
     )
     return jsonify({"problem": problem})
 
