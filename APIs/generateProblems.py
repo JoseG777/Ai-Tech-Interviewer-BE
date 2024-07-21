@@ -8,50 +8,32 @@ openai.api_key = os.getenv("OPEN_AI_API_KEY")
 
 
 def generate_problem(
-    user_level_description, easy_ratio, medium_ratio, hard_ratio, overall_ratio
+    user_level_description, easy_ratio, medium_ratio, hard_ratio, overall_ratio, language
 ):
     gpt_prompt = f"""
-    Generate a coding problem for a user based on the following profile and skill level. The problem should be tailored to match the user's expertise and challenge them appropriately. Ensure the problem is clear, concise, and structured as follows:
+        Generate a {language} coding problem tailored to a user's profile and skill level. Ensure the problem is clear, concise, returned with NO MARKDOWN, and follows this structure:
 
-    Problem Description:
-    - A detailed description of the problem the user needs to solve.
+        Problem Description: A detailed description of the problem.
 
-    Examples:
-    - Provide at two examples with input and output.
+        Example 1:
+        Input: [input example]
+        Output: [expected output]
+        Example 2:
+        Input: [input example]
+        Output: [expected output]
+        Constraints: List all constraints.
 
-    Constraints:
-    - List all constraints that the user needs to consider.
+        Function Signature: Provide the function signature.
 
-    Function Signature:
-    - Provide the function signature at the end.
+        Use the following User Profile:
 
-    User Profile:
-    - Level Description: {user_level_description}
-    - Easy LeetCode Problem Success Ratio: {easy_ratio * 100}%
-    - Medium LeetCode Problem Success Ratio: {medium_ratio * 100}%
-    - Hard LeetCode Problem Success Ratio: {hard_ratio * 100}%
-    - Overall LeetCode Problem Success Ratio: {overall_ratio * 100}%
-
-    Based on the users level description and success ratios, create a problem that fits their skill set. If the problem involves specific data structures or custom objects (e.g., linked list nodes, tree nodes), provide the necessary class definitions or any additional code required to understand and solve the problem. Ensure the problem is similar to a standard LeetCode problem and is appropriately challenging for the user's level.
-
-    Make sure the output follows this structure strictly, with NO MARKDOWN:
-
-    Problem Description:
-    - [Detailed problem description]
-
-    Examples:
-    - Example 1: 
-    - Input: [input example]
-    - Output: [expected output]
-    - Example 2: 
-    - Input: [input example]
-    - Output: [expected output]
-
-    Constraints:
-    - [List of constraints]
-
-    Function Signature:
-    - [Function signature]
+        Level Description: {user_level_description}
+        Easy LeetCode Problem Success Ratio: {easy_ratio * 100}%
+        Medium LeetCode Problem Success Ratio: {medium_ratio * 100}%
+        Hard LeetCode Problem Success Ratio: {hard_ratio * 100}%
+        Overall LeetCode Problem Success Ratio: {overall_ratio * 100}%
+        
+        Ensure the problem fits their skill set. If specific data structures or custom objects are needed, provide necessary class definitions or additional code. Make sure the problem is similar to a standard LeetCode problem and appropriately challenging. ONLY INCLUDE SPECIFIED STRUCTURE, NOTHING ELSE.
     """
 
 

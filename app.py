@@ -67,6 +67,7 @@ def new_user():
 def generate_problem_endpoint():
     data = request.get_json()
     uid = data["uid"]
+    language = data["language"]
 
     user = User.get_user_id(uid)
 
@@ -80,7 +81,7 @@ def generate_problem_endpoint():
     overall_ratio = user[7]
 
     problem = generate_problem(
-        user_level_description, easy_ratio, medium_ratio, hard_ratio, overall_ratio
+        user_level_description, easy_ratio, medium_ratio, hard_ratio, overall_ratio, language
     )
     return jsonify({"problem": problem})
 
