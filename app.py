@@ -9,12 +9,14 @@ from APIs.getLeetCode import getLeetCodeInfo
 from APIs.generateProblems import generate_problem
 from APIs.evaluateResponse import evaluate_response, parse_evaluation
 from messaging.emailing import send_email
+from db_clear_users import clear_user_history
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 openai.api_key = os.getenv("OPEN_AI_API_KEY")
 
+clear_user_history()
 
 def get_ai_response(prompt, problem):
     system_prompt = (
