@@ -33,6 +33,42 @@ def evaluate_response(prompt, user_response):
 
     return evaluation
 
+
+def evaluate_speech(prompt, user_response, user_speech):
+    gpt_prompt = f"""
+    Here is a coding problem and a user's response. Evaluate the response and the user's speech, providing feedback on a scale from 1-10, with 1 being "Needs a lot of work" to 10 being "Excellent".
+
+    Do not grade on function signature or class structure as those are given to the user. 
+
+    Evaluate the user's speech based on the following criteria:
+    - Clarity: How clearly they communicated their thoughts.
+    - Questions Asked: The relevance and quality of questions they asked.
+    - Relevancy: How relevant their speech was to the problem.
+    - Confidence: How confidently they presented their ideas.
+
+    Structure your feedback as follows:
+    Evaluation: [Describe how they did overall]
+    Feedback: [Provide detailed feedback on how they can improve]
+    Final Grade: [Give a single number out of 10. JUST THE NUMBER AS A WHOLE NUMBER]
+
+    Problem:
+    {prompt}
+
+    User's Response:
+    {user_response}
+
+    User's Speech:
+    {user_speech}
+    """
+
+    response = openai.ChatCompletion.create(
+        model="gpt-4", messages=[{"role": "user", "content": gpt_prompt}]
+    )
+    evaluation = response.choices[0].message["content"].strip()
+
+    return evaluation
+
+
 def parse_evaluation(response):
     evaluation_pattern = r"Evaluation:\s*(.*?)\s*Feedback:"
     feedback_pattern = r"Feedback:\s*(.*?)\s*Final Grade:"
@@ -42,8 +78,8 @@ def parse_evaluation(response):
     feedback_match = re.search(feedback_pattern, response, re.DOTALL)
     grade_match = re.search(grade_pattern, response)
 
-    evaluation = evaluation_match.group(1).strip() if evaluation_match else ''
-    feedback = feedback_match.group(1).strip() if feedback_match else ''
+    evaluation = evaluation_match.group(1).strip() if evaluation_match else ""
+    feedback = feedback_match.group(1).strip() if feedback_match else ""
     final_grade = int(grade_match.group(1)) if grade_match else 0
 
     return evaluation, feedback, final_grade
