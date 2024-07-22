@@ -17,15 +17,11 @@ def getLeetCodeInfo(username):
     }}
   """
 
-    # Define the URL for the LeetCode GraphQL API
     url = "https://leetcode.com/graphql"
 
-    # Make the API call
     response = requests.post(url, json={"query": query})
 
-    # Check if the request was successful
     if response.status_code == 200:
-        # Parse the JSON response
         data = response.json()
         test = [
             [
@@ -34,7 +30,6 @@ def getLeetCodeInfo(username):
             ]
             for stats in data["data"]["matchedUser"]["submitStats"]["acSubmissionNum"]
         ]
-        # print(test)
         return test[0][1], test[1][1], test[2][1], test[3][1]
     else:
         print(

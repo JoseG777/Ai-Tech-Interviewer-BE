@@ -104,9 +104,12 @@ class UserHistory:
                     user_id TEXT NOT NULL,
                     user_question TEXT NOT NULL,
                     user_response TEXT NOT NULL,
-                    evaluation TEXT NOT NULL,
-                    feedback TEXT NOT NULL,
-                    final_grade INTEGER NOT NULL,
+                    code_evaluation TEXT NOT NULL,
+                    code_feedback TEXT NOT NULL,
+                    final_code_grade INTEGER NOT NULL,
+                    speech_evaluation TEXT,
+                    speech_feedback TEXT,
+                    final_speech_grade INTEGER,
                     saved_date TEXT NOT NULL DEFAULT (datetime('now')),
                     PRIMARY KEY (user_id, saved_date),
                     FOREIGN KEY (user_id) REFERENCES users (uid) ON DELETE CASCADE
@@ -116,15 +119,18 @@ class UserHistory:
             conn.commit()
 
     @staticmethod
-    def update_history(user_id, problem, response, evaluation, feedback, final_grade):
+    def update_history(user_id, problem, response, code_evaluation, code_feedback, final_code_grade,
+                       speech_evaluation=None, speech_feedback=None, final_speech_grade=None):
         save_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with DatabaseConnection() as conn:
             conn.execute(
                 """
                 INSERT INTO userhistory 
-                (user_id, user_question, user_response, evaluation, feedback, final_grade, saved_date) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                (user_id, user_question, user_response, code_evaluation, code_feedback, final_code_grade, 
+                 speech_evaluation, speech_feedback, final_speech_grade, saved_date) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (user_id, problem, response, evaluation, feedback, final_grade, save_date)
+                (user_id, problem, response, code_evaluation, code_feedback, final_code_grade, 
+                 speech_evaluation, speech_feedback, final_speech_grade, save_date)
             )
             conn.commit()
