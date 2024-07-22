@@ -177,7 +177,21 @@ def evaluate_response_endpoint():
         UserHistory.update_history(uid, problem, response, code_evaluation2, feedback, int(final_grade),
                                    speech_evaluation2, speech_feedback, final_speech_grade)
         
-        return jsonify({"evaluation": code_evaluation})
+        response_data = {
+            "code_evaluation": {
+                "evaluation": code_evaluation2,
+                "feedback": feedback,
+                "final_grade": final_grade
+            },
+            "speech_evaluation": {
+                "evaluation": speech_evaluation2,
+                "feedback": speech_feedback,
+                "final_grade": final_speech_grade
+            } if speech_input != "N/A" else None
+        }
+
+        print(response_data)
+        return jsonify(response_data)
 
     return jsonify({"evaluation": "error"})
 
