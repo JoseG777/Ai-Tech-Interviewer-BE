@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../FormsCode"
+		},
+		{
+			"path": "../Ai-Tech-Interviewer-FE-1"
+		}
+	],
+	"settings": {
+		"githubPullRequests.ignoredPullRequestBranches": [
+			"main"
+		]
+	}
+}
