@@ -1,6 +1,7 @@
-import openai
 import os
+import re
 from dotenv import load_dotenv
+import openai
 
 load_dotenv()
 
@@ -9,14 +10,14 @@ openai.api_key = os.getenv("OPEN_AI_API_KEY")
 
 def evaluate_response(prompt, user_response):
     gpt_prompt = f"""
-    Here is a coding problem and a user's response. Evaluate the response and provide feedback on a scale from 1-5, with 1 being "Needs a lot of work" to 5 being "Excellent". 
+    Here is a coding problem and a user's response. Evaluate the response and provide feedback on a scale from 1-10, with 1 being "Needs a lot of work" to 10 being "Excellent". 
 
     Do not grade on function signature or class structure as those are given to the user. 
 
     Structure your feedback as follows:
     Evaluation: [Describe how they did overall]
     Feedback: [Provide detailed feedback on how they can improve]
-    Final Grade: [Give a single number out of 5]
+    Final Grade: [Give a single number out of 10. JUST THE NUMBER AS A WHOLE NUMBER]
 
     Problem:
     {prompt}
@@ -32,10 +33,23 @@ def evaluate_response(prompt, user_response):
 
     return evaluation
 
+def parse_evaluation(response):
+    evaluation_pattern = r"Evaluation:\s*(.*?)\s*Feedback:"
+    feedback_pattern = r"Feedback:\s*(.*?)\s*Final Grade:"
+    grade_pattern = r"Final Grade:\s*(\d+)"
 
+    evaluation_match = re.search(evaluation_pattern, response, re.DOTALL)
+    feedback_match = re.search(feedback_pattern, response, re.DOTALL)
+    grade_match = re.search(grade_pattern, response)
+
+    evaluation = evaluation_match.group(1).strip() if evaluation_match else ''
+    feedback = feedback_match.group(1).strip() if feedback_match else ''
+    final_grade = int(grade_match.group(1)) if grade_match else 0
+
+    return evaluation, feedback, final_grade
 # Example for proof of concept
 
-'''
+
 p = f"""
     You are given a list of words. Your task is to find the top k most frequent words in the list. If two words have the same frequency, the word with the lower alphabetical order comes first.
 
@@ -102,5 +116,5 @@ def top_k_frequent_words(words: list[str], k: int) -> list[str]:
 
 """
 
-print(evaluate_response(p, a))
-'''
+# print(evaluate_response(p, a))
+

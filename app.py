@@ -5,7 +5,7 @@ from database.models import User, UserHistory
 # Function Imports 
 from APIs.getLeetCode import getLeetCodeInfo
 from APIs.generateProblems import generate_problem
-from APIs.evaluateResponse import evaluate_response
+from APIs.evaluateResponse import evaluate_response, parse_evaluation
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -100,7 +100,8 @@ def evaluate_response_endpoint():
 
     if problem and response and uid:
         evaluation = evaluate_response(problem, response)
-        UserHistory.update_history(uid, problem, response, evaluation)
+        evaluation2, feedback, final_grade = parse_evaluation(evaluation)
+        UserHistory.update_history(uid, problem, response, evaluation2, feedback, int(final_grade))
         return jsonify({"evaluation": evaluation})
 
     return jsonify({"evaluation": "error"})
