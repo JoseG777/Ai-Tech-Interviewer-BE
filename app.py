@@ -142,7 +142,7 @@ def evaluate_response_endpoint():
 @app.route('/api/deleteUser', methods=['POST'])
 def delete_user():
     data = request.get_json()
-    uid = data['uid']
+    uid = data.get('uid')
 
     # user will already be logged into their account
     # so no need to check if user exists
