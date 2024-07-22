@@ -193,8 +193,24 @@ def send_email_endpoint():
     result = send_email(to_email, subject, body)
     return jsonify({"message": result})
 
+
+@app.route("/api/sendSignInEmail", methods=["POST"])
+def send_sign_in_email():
+    data = request.get_json()
+    to_email = data["to_email"]
+    try:
+        send_email(
+            to_email=to_email,
+            subject="Successful Sign-In",
+            body="You have successfully signed in to your account. You are one step closer to mastering the technicual interview!"
+        )
+        return jsonify({"message": "Sign-in email sent successfully"}), 200
+    except Exception as e:
+        return jsonify({"message": f"Failed to send sign-in email: {str(e)}"}), 500
+
 if __name__ == "__main__":
     from database.initialization import initialize_database
 
     initialize_database()
     app.run(debug=True, port=5000)
+
