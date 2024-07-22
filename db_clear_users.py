@@ -24,5 +24,15 @@ def clear_users_table():
     finally:
         conn.close()
 
+def clear_user_history():
+    conn = get_connection()
+    try:
+        conn.execute("DELETE FROM userhistory")
+        conn.commit()
+    except Exception as e:
+        print(f"Error while clearing the 'users' table: {str(e)}")
+    finally:
+        conn.close()
+
 if __name__ == '__main__':
     clear_users_table()
