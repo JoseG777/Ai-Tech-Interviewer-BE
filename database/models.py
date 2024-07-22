@@ -93,6 +93,26 @@ class User:
             # print(f"Update executed successfully for user {uid}")
             conn.commit()
 
+    @staticmethod
+    def remove_user(uid):
+        with DatabaseConnection() as conn:
+            cur = conn.cursor()
+            cur.execute('DELETE FROM users WHERE uid = ?', (uid,))
+            conn.commit()
+
+    @staticmethod
+    def update_goal(uid, new_goal):
+        with DatabaseConnection() as conn:
+            cur = conn.cursor()
+            cur.execute('''UPDATE users SET current_goal = ? WHERE uid = ?''', (new_goal, uid))
+            conn.commit()
+
+    @staticmethod
+    def update_interview(uid, new_interview):
+        with DatabaseConnection() as conn:
+            cur = conn.cursor()
+            cur.execute('''UPDATE users SET upcoming_interview = ? WHERE uid = ?''', (new_interview, uid))
+
 
 class UserHistory:
     @staticmethod
@@ -101,30 +121,36 @@ class UserHistory:
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS userhistory (
-                    user_id TEXT NOT NULL,
-                    user_question TEXT NOT NULL,
-                    user_response TEXT NOT NULL,
-                    evaluation TEXT NOT NULL,
-                    feedback TEXT NOT NULL,
-                    final_grade INTEGER NOT NULL,
-                    saved_date TEXT NOT NULL DEFAULT (datetime('now')),
-                    PRIMARY KEY (user_id, saved_date),
-                    FOREIGN KEY (user_id) REFERENCES users (uid) ON DELETE CASCADE
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                user_question TEXT NOT NULL,
+                user_response TEXT NOT NULL,
+                evaluation TEXT NOT NULL,
+                feedback TEXT NOT NULL,
+                final_grade TEXT NOT NULL,
+                saved_date TEXT NOT NULL DEFAULT (datetime('now')),
+                FOREIGN KEY (user_id) REFERENCES users (uid) ON DELETE CASCADE
                 )
                 """
             )
             conn.commit()
 
     @staticmethod
-    def update_history(user_id, problem, response, evaluation, feedback, final_grade):
+    def update_history(id, problem, response, evaluation, feedback, final_grade):
         save_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with DatabaseConnection() as conn:
             conn.execute(
-                """
-                INSERT INTO userhistory 
-                (user_id, user_question, user_response, evaluation, feedback, final_grade, saved_date) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                (user_id, problem, response, evaluation, feedback, final_grade, save_date)
+                """INSERT INTO userhistory 
+                (user_id, user_question, user_response, evaluation, 
+                feedback, final_grade, saved_date) VALUES (?, ?, ?, ?, ?)""",
+                (id, problem, response, evaluation, feedback, final_grade, save_date),
             )
             conn.commit()
+
+    @staticmethod
+    def get_grades(uid):
+        with DatabaseConnection() as conn:
+            cur = conn.cursor()
+            grades = cur.execute('SELECT final_grade, saved_date FROM userhistory WHERE user_id = ?', (uid,)).fetchall()
+
+        return grades
