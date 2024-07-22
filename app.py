@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from database.models import User, UserHistory
@@ -7,15 +8,19 @@ from email.mime.text import MIMEText
 import os
 from dotenv import load_dotenv
 # Function Imports
+import openai
+
+# Function Imports 
 from APIs.getLeetCode import getLeetCodeInfo
 from APIs.generateProblems import generate_problem
-from APIs.evaluateResponse import evaluate_response
+from APIs.evaluateResponse import evaluate_response, parse_evaluation
 
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
+openai.api_key = os.getenv("OPEN_AI_API_KEY")
 
 def send_email(to_email, subject, body):
     from_email = os.getenv("EMAIL_ADDRESS")
@@ -44,6 +49,30 @@ def send_email(to_email, subject, body):
 def get_message():
     return jsonify({"message": "Hello from Flask!"})
 
+def get_ai_response(prompt, problem):
+    system_prompt = (
+        f"""
+        You are an interview assistant. You are presenting a coding problem to the user and helping them through the problem. 
+        
+        You must not give away the solution directly. If the user asks for hints, provide only subtle hints that guide them in the right direction. Only give hints if the user provides context about their current progress or what they have tried so far. Also, don't answer more than what is needed. If a user asks something that can be answered in a yes or no response, return just yes or no
+        
+        Make your answers short and concise. No more than 2 sentences
+        
+        Here is the problem: \n\n"
+        {problem}\n\n"
+        User: {prompt}\n\n"
+        Remember, do not give the solution directly.
+        """
+    )
+    
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    return response.choices[0].message["content"].strip()
 
 @app.route("/api/createUser", methods=["POST"])
 def create_user():
@@ -70,11 +99,9 @@ def create_user():
 
     return jsonify({"message": "User created successfully"}), 201
 
-
 @app.route("/api/newUser", methods=["POST"])
 def new_user():
     data = request.get_json()
-    # print(f"Recieved data: {data}")
     uid = data["uid"]
     leetcode_username = data["leetcode_username"]
     coding_level = data["coding_level"]
@@ -87,8 +114,6 @@ def new_user():
         overall_ratio, easy_ratio, medium_ratio, hard_ratio = getLeetCodeInfo(
             leetcode_username
         )
-
-    # print(f"Updating user: {uid}, {leetcode_username}, {coding_level}, {goal}, {upcoming_interview}, {overall_ratio}, {easy_ratio}, {medium_ratio}, {hard_ratio}")
 
     User.update_user(
         uid,
@@ -103,7 +128,6 @@ def new_user():
     )
 
     return jsonify({"message": "New user info received"}), 201
-
 
 @app.route("/api/generateProblem", methods=["POST"])
 def generate_problem_endpoint():
@@ -132,20 +156,32 @@ def generate_problem_endpoint():
     )
     return jsonify({"problem": problem})
 
-
 @app.route("/api/evaluateResponse", methods=["POST"])
 def evaluate_response_endpoint():
     data = request.get_json()
     problem = data["problem"]
     response = data["userResponse"]
     uid = data["uid"]
+    
+    # print(problem, response, "\n\n\n", uid)
 
     if problem and response and uid:
+        # print("\n\n\n\n\n\n\nREACHED\n\n\n\n\n\n\n")
         evaluation = evaluate_response(problem, response)
-        UserHistory.update_history(uid, problem, response, evaluation)
+        evaluation2, feedback, final_grade = parse_evaluation(evaluation)
+        # print(problem, response, uid, evaluation2, feedback, final_grade)
+        UserHistory.update_history(uid, problem, response, evaluation2, feedback, int(final_grade))
         return jsonify({"evaluation": evaluation})
 
     return jsonify({"evaluation": "error"})
+
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    data = request.get_json()
+    user_message = data.get('message')
+    problem = data.get('problem')
+    ai_response = get_ai_response(user_message, problem)
+    return jsonify({"ai_response": ai_response})
 
 
 @app.route("/api/sendEmail", methods=["POST"])
