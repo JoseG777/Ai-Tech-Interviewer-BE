@@ -114,10 +114,14 @@ def evaluate_response_endpoint():
     problem = data["problem"]
     response = data["userResponse"]
     uid = data["uid"]
+    
+    # print(problem, response, "\n\n\n", uid)
 
     if problem and response and uid:
+        # print("\n\n\n\n\n\n\nREACHED\n\n\n\n\n\n\n")
         evaluation = evaluate_response(problem, response)
         evaluation2, feedback, final_grade = parse_evaluation(evaluation)
+        # print(problem, response, uid, evaluation2, feedback, final_grade)
         UserHistory.update_history(uid, problem, response, evaluation2, feedback, int(final_grade))
         return jsonify({"evaluation": evaluation})
 
