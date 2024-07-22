@@ -127,7 +127,7 @@ def new_user():
         hard_ratio,
     )
 
-    return jsonify({"message": "New user info received"}), 201
+    return jsonify({"message": "New user info received"}), 201 
 
 @app.route("/api/generateProblem", methods=["POST"])
 def generate_problem_endpoint():
