@@ -139,7 +139,7 @@ def evaluate_response_endpoint():
     return jsonify({"evaluation": "error"})
 
 
-@app.route('api/deleteUser', methods=['POST'])
+@app.route('/api/deleteUser', methods=['POST'])
 def delete_user():
     data = request.get_json()
     uid = data['uid']
