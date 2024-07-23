@@ -58,21 +58,33 @@ def index():
 
 @app.route("/api/createUser", methods=["POST"])
 def create_user():
+    data = request.get_json()
+    uid = data.get("uid")
+    email = data.get("email")
+    
+    if not uid or not email:
+        return jsonify({"message": "Missing uid or email"}), 400
+
+    logging.info(f"Creating user with UID: {uid} and email: {email}")
+
     try:
-        data = request.get_json()
-        uid = data["uid"]
-        email = data["email"]
         leetcode_username = None
         user_level_description = "N/A"
-
-        logging.info(f"Creating user with UID: {uid} and email: {email}")
-
         User.add_user(uid, email, leetcode_username, user_level_description)
+        
+        # Comment out email sending for now if it causes issues
+        # send_email(
+        #     to_email=email,
+        #     subject="Welcome to Interviewer AI!",
+        #     body="Thank you for signing up. We're excited to be part of your technical interviewing journey!"
+        # )
+
         logging.info(f"User {uid} created successfully")
         return jsonify({"message": "User created successfully"}), 201
+
     except Exception as e:
         logging.error(f"Failed to create user: {str(e)}")
-        return jsonify({"message": f"Failed to create user: {str(e)}, {uid}, {email}"}), 500
+        return jsonify({"message": f"Failed to create user: test"}), 500
 
 
 @app.route("/api/newUser", methods=["POST"])
