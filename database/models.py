@@ -11,6 +11,7 @@ class User:
                 CREATE TABLE IF NOT EXISTS users (
                     uid TEXT PRIMARY KEY NOT NULL,
                     email TEXT UNIQUE NOT NULL,
+                    username TEXT UNIQUE NOT NULL,
                     leetcode_username TEXT UNIQUE,
                     user_level_description TEXT NOT NULL,
                     overall_ratio FLOAT,
@@ -26,17 +27,18 @@ class User:
             conn.commit()
 
     @staticmethod
-    def add_user(user_id, email, lc, level):
+    def add_user(user_id, username, email, lc, level):
         signup_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with DatabaseConnection() as conn:
             conn.execute(
                 """
-                INSERT INTO users (uid, email, leetcode_username, user_level_description, overall_ratio,
+                INSERT INTO users (uid, email, username, leetcode_username, user_level_description, overall_ratio,
                     easy_ratio, medium_ratio, hard_ratio, current_goal, upcoming_interview, signup_date) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     user_id,
                     email,
+                    username,
                     lc,
                     level,
                     None,

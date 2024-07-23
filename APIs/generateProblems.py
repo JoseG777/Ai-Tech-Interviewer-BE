@@ -9,6 +9,7 @@ openai.api_key = os.getenv("OPEN_AI_API_KEY")
 
 def generate_problem(
     user_level_description,
+    current_goal,
     easy_ratio,
     medium_ratio,
     hard_ratio,
@@ -41,7 +42,7 @@ def generate_problem(
 
         Use the following User Profile:
 
-        Level Description: {user_level_description}
+        Level Description and Goal: {user_level_description} and {current_goal}
         Easy LeetCode Problem Success Ratio: {easy_ratio * 100}%
         Medium LeetCode Problem Success Ratio: {medium_ratio * 100}%
         Hard LeetCode Problem Success Ratio: {hard_ratio * 100}%

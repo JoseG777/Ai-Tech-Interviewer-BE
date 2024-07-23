@@ -61,24 +61,16 @@ def create_user():
     data = request.get_json()
     uid = data.get("uid")
     email = data.get("email")
+    username = data['username']
     
     if not uid or not email:
         return jsonify({"message": "Missing uid or email"}), 400
 
-    # logging.info(f"Creating user with UID: {uid} and email: {email}")
-
     try:
         leetcode_username = None
         user_level_description = "N/A"
-        User.add_user(uid, email, leetcode_username, user_level_description)
+        User.add_user(uid, username, email, leetcode_username, user_level_description)
         
-        # send_email(
-        #     to_email=email,
-        #     subject="Welcome to Interviewer AI!",
-        #     body="Thank you for signing up. We're excited to be part of your technical interviewing journey!"
-        # )
-
-        # logging.info(f"User {uid} created successfully")
         return jsonify({"message": "User created successfully"}), 201
 
     except Exception as e:
@@ -122,6 +114,18 @@ def new_user():
     except Exception as e:
         logging.error(f"Failed to update user: {str(e)}")
         return jsonify({"message": f"Failed to update user: {str(e)}"}), 500
+    
+
+@app.route('/api/login', methods=['POST'])
+def log_user():
+    data = request.get_json()
+    username = data.get('username')
+    email = User.get_email(username)
+
+    if email is not None:
+        return jsonify({'email': email[0]}), 201
+    else:
+        return jsonify({'error': 'Username not found'}), 404
 
 
 @app.route("/api/generateProblem", methods=["POST"])
@@ -136,15 +140,17 @@ def generate_problem_endpoint():
         if not user:
             return jsonify({"error": "User not found"}), 404
 
-        user_level_description = user[3]
-        easy_ratio = user[4]
-        medium_ratio = user[5]
-        hard_ratio = user[6]
-        overall_ratio = user[7]
-        upcoming_interview = user[9]
+        user_level_description = user[4]
+        overall_ratio = user[5]
+        easy_ratio = user[6]
+        medium_ratio = user[7]
+        hard_ratio = user[8]
+        current_goal = user[9]
+        upcoming_interview = user[10]
 
         problem = generate_problem(
             user_level_description,
+            current_goal,
             easy_ratio,
             medium_ratio,
             hard_ratio,
@@ -332,10 +338,10 @@ def get_user():
             {
                 "user": {
                     "username": user[2],
-                    "level_description": user[3],
-                    "current_goal": user[8],
-                    "upcoming_interview": user[9],
-                    "signup_date": user[10],
+                    "level_description": user[4],
+                    "current_goal": user[9],
+                    "upcoming_interview": user[10],
+                    "signup_date": user[11],
                 },
                 "code_grades": code_grades,
                 "speech_grades": speech_grades,
