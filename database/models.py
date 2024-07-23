@@ -97,27 +97,35 @@ class User:
     def remove_user(uid):
         with DatabaseConnection() as conn:
             cur = conn.cursor()
-            cur.execute('DELETE FROM users WHERE uid = ?', (uid,))
+            cur.execute("DELETE FROM users WHERE uid = ?", (uid,))
             conn.commit()
 
     @staticmethod
     def update_goal(uid, new_goal):
         with DatabaseConnection() as conn:
             cur = conn.cursor()
-            cur.execute('''UPDATE users SET current_goal = ? WHERE uid = ?''', (new_goal, uid))
+            cur.execute(
+                """UPDATE users SET current_goal = ? WHERE uid = ?""", (new_goal, uid)
+            )
             conn.commit()
 
     @staticmethod
     def update_interview(uid, new_interview):
         with DatabaseConnection() as conn:
             cur = conn.cursor()
-            cur.execute('''UPDATE users SET upcoming_interview = ? WHERE uid = ?''', (new_interview, uid))
+            cur.execute(
+                """UPDATE users SET upcoming_interview = ? WHERE uid = ?""",
+                (new_interview, uid),
+            )
 
     @staticmethod
     def update_level(uid, new_level):
         with DatabaseConnection() as conn:
             cur = conn.cursor()
-            cur.execute('''UPDATE users SET user_level_description = ? WHERE uid = ?''', (new_level, uid))
+            cur.execute(
+                """UPDATE users SET user_level_description = ? WHERE uid = ?""",
+                (new_level, uid),
+            )
 
 
 class UserHistory:
@@ -145,8 +153,17 @@ class UserHistory:
             conn.commit()
 
     @staticmethod
-    def update_history(user_id, problem, response, code_evaluation, code_feedback, final_code_grade,
-                       speech_evaluation=None, speech_feedback=None, final_speech_grade=None):
+    def update_history(
+        user_id,
+        problem,
+        response,
+        code_evaluation,
+        code_feedback,
+        final_code_grade,
+        speech_evaluation=None,
+        speech_feedback=None,
+        final_speech_grade=None,
+    ):
         save_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with DatabaseConnection() as conn:
             conn.execute(
@@ -154,53 +171,64 @@ class UserHistory:
                  (user_id, user_question, user_response, code_evaluation, code_feedback, final_code_grade, 
                  speech_evaluation, speech_feedback, final_speech_grade, saved_date) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (user_id, problem, response, code_evaluation, code_feedback, final_code_grade,
-                 speech_evaluation, speech_feedback, final_speech_grade, save_date)
+                (
+                    user_id,
+                    problem,
+                    response,
+                    code_evaluation,
+                    code_feedback,
+                    final_code_grade,
+                    speech_evaluation,
+                    speech_feedback,
+                    final_speech_grade,
+                    save_date,
+                ),
             )
             conn.commit()
-            
-            
+
     @staticmethod
     def get_user_history(uid):
         with DatabaseConnection() as conn:
             cur = conn.cursor()
             history = cur.execute(
-                'SELECT user_question, user_response, '
+                "SELECT user_question, user_response, "
                 'COALESCE(code_evaluation, "N/A"), COALESCE(code_feedback, "N/A"), '
                 'COALESCE(final_code_grade, "N/A"), COALESCE(speech_evaluation, "N/A"), '
                 'COALESCE(speech_feedback, "N/A"), COALESCE(final_speech_grade, "N/A"), '
                 'COALESCE(saved_date, "N/A") '
-                'FROM userhistory WHERE user_id = ?', 
-                (uid,)
+                "FROM userhistory WHERE user_id = ?",
+                (uid,),
             ).fetchall()
 
-        history_list = [{
-            'user_question': record[0],
-            'user_response': record[1],
-            'code_evaluation': record[2],
-            'code_feedback': record[3],
-            'final_code_grade': record[4],
-            'speech_evaluation': record[5],
-            'speech_feedback': record[6],
-            'final_speech_grade': record[7],
-            'saved_date': record[8]
-        } for record in history]
+        history_list = [
+            {
+                "user_question": record[0],
+                "user_response": record[1],
+                "code_evaluation": record[2],
+                "code_feedback": record[3],
+                "final_code_grade": record[4],
+                "speech_evaluation": record[5],
+                "speech_feedback": record[6],
+                "final_speech_grade": record[7],
+                "saved_date": record[8],
+            }
+            for record in history
+        ]
 
         return history_list
 
-
-    
-    
     @staticmethod
     def get_code_grades(uid):
         with DatabaseConnection() as conn:
             cur = conn.cursor()
             grades = cur.execute(
-                'SELECT final_code_grade, saved_date FROM userhistory WHERE user_id = ? AND final_code_grade IS NOT NULL', 
-                (uid,)
+                "SELECT final_code_grade, saved_date FROM userhistory WHERE user_id = ? AND final_code_grade IS NOT NULL",
+                (uid,),
             ).fetchall()
 
-        grades_list = [{'final_code_grade': grade[0], 'saved_date': grade[1]} for grade in grades]
+        grades_list = [
+            {"final_code_grade": grade[0], "saved_date": grade[1]} for grade in grades
+        ]
 
         return grades_list
 
@@ -209,11 +237,13 @@ class UserHistory:
         with DatabaseConnection() as conn:
             cur = conn.cursor()
             grades = cur.execute(
-                'SELECT final_speech_grade, saved_date FROM userhistory WHERE user_id = ? AND final_speech_grade IS NOT NULL', 
-                (uid,)
+                "SELECT final_speech_grade, saved_date FROM userhistory WHERE user_id = ? AND final_speech_grade IS NOT NULL",
+                (uid,),
             ).fetchall()
 
-        grades_list = [{'final_speech_grade': grade[0], 'saved_date': grade[1]} for grade in grades]
+        grades_list = [
+            {"final_speech_grade": grade[0], "saved_date": grade[1]} for grade in grades
+        ]
 
         return grades_list
 
@@ -221,7 +251,10 @@ class UserHistory:
     def count_history(uid):
         with DatabaseConnection() as conn:
             cur = conn.cursor()
-            records = cur.execute("SELECT final_code_grade, saved_date FROM userhistory WHERE user_id = ?", (uid,)).fetchall()
+            records = cur.execute(
+                "SELECT final_code_grade, saved_date FROM userhistory WHERE user_id = ?",
+                (uid,),
+            ).fetchall()
 
         if records:
             attempts_count = {}
@@ -232,7 +265,10 @@ class UserHistory:
                 else:
                     attempts_count[saved_date] = 1
 
-            attempts_list = [{'saved_date': date, 'count': count} for date, count in attempts_count.items()]
+            attempts_list = [
+                {"saved_date": date, "count": count}
+                for date, count in attempts_count.items()
+            ]
         else:
             attempts_list = []
 

@@ -14,10 +14,14 @@ def generate_problem(
     hard_ratio,
     overall_ratio,
     language,
-    upcoming_interview
+    upcoming_interview,
 ):
-    interview_info = f"This problem is tailored for an upcoming interview with {upcoming_interview}." if upcoming_interview != "N/A" else ""
-    
+    interview_info = (
+        f"This problem is tailored for an upcoming interview with {upcoming_interview}."
+        if upcoming_interview != "N/A"
+        else ""
+    )
+
     gpt_prompt = f"""
         Generate a {language} coding problem tailored to a user's profile and skill level. Ensure the problem is clear, concise, returned with NO MARKDOWN, and follows this structure:
 
@@ -47,10 +51,8 @@ def generate_problem(
     """
 
     response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": gpt_prompt}]
+        model="gpt-4", messages=[{"role": "user", "content": gpt_prompt}]
     )
     recommendation = response.choices[0].message["content"].strip()
 
     return recommendation
-
