@@ -72,7 +72,6 @@ def create_user():
         user_level_description = "N/A"
         User.add_user(uid, email, leetcode_username, user_level_description)
         
-        # Comment out email sending for now if it causes issues
         # send_email(
         #     to_email=email,
         #     subject="Welcome to Interviewer AI!",
@@ -300,6 +299,7 @@ def send_email_endpoint():
         return jsonify({"message": f"Failed to send email: {str(e)}"}), 500
 
 
+'''
 @app.route("/api/sendSignInEmail", methods=["POST"])
 def send_sign_in_email():
     try:
@@ -313,6 +313,7 @@ def send_sign_in_email():
         return jsonify({"message": "Sign-in email sent successfully"}), 200
     except Exception as e:
         return jsonify({"message": f"Failed to send sign-in email: {str(e)}"}), 500
+'''
 
 
 @app.route("/api/getUsers", methods=["GET"])
