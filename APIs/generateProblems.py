@@ -24,32 +24,31 @@ def generate_problem(
     )
 
     gpt_prompt = f"""
-        Generate a {language} coding problem tailored to a user's profile and skill level. Ensure the problem is clear, concise, returned with NO MARKDOWN, and follows this structure:
+        Generate a {language} coding problem tailored to a user's profile and skill level, following this structure:
 
         Problem Description: A detailed description of the problem.
 
         Example 1:
         Input: [input example]
         Output: [expected output]
+
         Example 2:
         Input: [input example]
         Output: [expected output]
+
         Constraints: List all constraints.
 
         Function Signature: Provide the function signature.
 
-        {interview_info}
-
-        Use the following User Profile:
-
-        Level Description: {user_level_description}
+        User Profile:
+        Level: {user_level_description}
         Goal: {current_goal}
-        Easy LeetCode Problem Success Ratio: {easy_ratio * 100}%
-        Medium LeetCode Problem Success Ratio: {medium_ratio * 100}%
-        Hard LeetCode Problem Success Ratio: {hard_ratio * 100}%
-        Overall LeetCode Problem Success Ratio: {overall_ratio * 100}%
-        
-        Ensure the problem fits their skill set. If specific data structures or custom objects are needed, provide necessary class definitions or additional code. Make sure the problem is similar to a standard LeetCode problem and appropriately challenging. ONLY INCLUDE SPECIFIED STRUCTURE, NO MARKDOWN, AND NOTHING OUTSIDE OF SPECIFIED STRUCTURE.
+        Easy LeetCode Success Rate: {easy_ratio * 100}%
+        Medium LeetCode Success Rate: {medium_ratio * 100}%
+        Hard LeetCode Success Rate: {hard_ratio * 100}%
+        Overall LeetCode Success Rate: {overall_ratio * 100}%
+
+        Ensure the problem fits their skill set. If specific data structures or custom objects are needed, provide necessary class definitions or additional code. Only include the specified structure; do not add any notes or markdown.
     """
 
     response = openai.ChatCompletion.create(
