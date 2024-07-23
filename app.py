@@ -42,11 +42,6 @@ def get_ai_response(prompt, problem):
     return response.choices[0].message["content"].strip()
 
 
-@app.route("/api/message", methods=["GET"])
-def get_message():
-    return jsonify({"message": "Hello from Flask!"})
-
-
 @app.route("/api/createUser", methods=["POST"])
 def create_user():
     data = request.get_json()
@@ -116,7 +111,8 @@ def generate_problem_endpoint():
     medium_ratio = user[5]
     hard_ratio = user[6]
     overall_ratio = user[7]
-
+    upcoming_interview = user[9]  
+    
     problem = generate_problem(
         user_level_description,
         easy_ratio,
@@ -124,6 +120,7 @@ def generate_problem_endpoint():
         hard_ratio,
         overall_ratio,
         language,
+        upcoming_interview
     )
     return jsonify({"problem": problem})
 
@@ -139,15 +136,17 @@ def evaluate_response_endpoint():
     if problem and response and uid:
         code_evaluation = evaluate_response(problem, response)
         code_evaluation2, feedback, final_grade = parse_evaluation(code_evaluation)
+        final_grade = int(final_grade)
 
         speech_evaluation2 = speech_feedback = final_speech_grade = None
         if speech_input != "N/A":
             speech_evaluation = evaluate_speech(problem, response, speech_input)
             speech_evaluation2, speech_feedback, final_speech_grade = parse_evaluation(speech_evaluation)
+            final_speech_grade = int(final_speech_grade)
             print(speech_evaluation2, speech_feedback, final_speech_grade)
 
-        UserHistory.update_history(uid, problem, response, code_evaluation2, feedback, int(final_grade),
-                                   speech_evaluation2, speech_feedback, int(final_speech_grade))
+        UserHistory.update_history(uid, problem, response, code_evaluation2, feedback, final_grade,
+                                   speech_evaluation2, speech_feedback, final_speech_grade)
 
         response_data = {
             "code_evaluation": {
@@ -166,6 +165,15 @@ def evaluate_response_endpoint():
         return jsonify(response_data)
 
     return jsonify({"evaluation": "error"})
+
+
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    data = request.get_json()
+    user_message = data.get('message')
+    problem = data.get('problem')
+    ai_response = get_ai_response(user_message, problem)
+    return jsonify({"ai_response": ai_response})
 
 
 @app.route('/api/deleteUser', methods=['POST'])
@@ -227,32 +235,25 @@ def send_email_endpoint():
 def get_user():
     uid = request.args.get('uid')
     user = User.get_user_id(uid)
-    code_grades = UserHistory.get_code_grades(uid)  # gets final grades & corresponding saved dates
-    speech_grades = UserHistory.get_speech_grades(uid)
-    attempts = UserHistory.count_history(uid)  # gets the number of attempts for each saved date
+    if not user:
+        return jsonify({"error": "User not found"}), 404
 
-    # user should exist
+    code_grades = UserHistory.get_code_grades(uid)
+    speech_grades = UserHistory.get_speech_grades(uid)
+    attempts = UserHistory.count_history(uid)
+
     return jsonify({
-        'user':
-            {'username': user[2],
-             'level_description': user[3],
-             'current_goal': user[8],
-             'upcoming_interview': user[9],
-             'signup_date': user[10]
-             },
+        'user': {
+            'username': user[2],
+            'level_description': user[3],
+            'current_goal': user[8],
+            'upcoming_interview': user[9],
+            'signup_date': user[10]
+        },
         'code_grades': code_grades,
         'speech_grades': speech_grades,
         'attempts': attempts
     })
-
-
-@app.route("/api/chat", methods=["POST"])
-def chat():
-    data = request.get_json()
-    user_message = data.get('message')
-    problem = data.get('problem')
-    ai_response = get_ai_response(user_message, problem)
-    return jsonify({"ai_response": ai_response})
 
 
 @app.route("/api/sendSignInEmail", methods=["POST"])

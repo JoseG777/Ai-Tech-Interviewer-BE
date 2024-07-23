@@ -153,7 +153,7 @@ class UserHistory:
                 """INSERT INTO userhistory 
                  (user_id, user_question, user_response, code_evaluation, code_feedback, final_code_grade, 
                  speech_evaluation, speech_feedback, final_speech_grade, saved_date) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?""",
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (user_id, problem, response, code_evaluation, code_feedback, final_code_grade,
                  speech_evaluation, speech_feedback, final_speech_grade, save_date)
             )
@@ -163,14 +163,12 @@ class UserHistory:
     def get_code_grades(uid):
         with DatabaseConnection() as conn:
             cur = conn.cursor()
-            grades = cur.execute('SELECT final_code_grade, saved_date FROM userhistory WHERE user_id = ?', (uid,)).fetchall()
+            grades = cur.execute(
+                'SELECT final_code_grade, saved_date FROM userhistory WHERE user_id = ? AND final_code_grade IS NOT NULL', 
+                (uid,)
+            ).fetchall()
 
-        # return the final grade of an assignment & its saved date
-        if grades is not None:
-            grades_list = [{'final_code_grade': grade['final_code_grade'], 'saved_date': grade['saved_date']} for grade in grades]
-        else:
-            # if user has no final grades, return empty list
-            grades_list = []
+        grades_list = [{'final_code_grade': grade[0], 'saved_date': grade[1]} for grade in grades]
 
         return grades_list
 
@@ -178,40 +176,32 @@ class UserHistory:
     def get_speech_grades(uid):
         with DatabaseConnection() as conn:
             cur = conn.cursor()
-            grades = cur.execute('SELECT final_speech_grade, saved_date FROM userhistory WHERE user_id = ?', (uid,)).fetchall()
+            grades = cur.execute(
+                'SELECT final_speech_grade, saved_date FROM userhistory WHERE user_id = ? AND final_speech_grade IS NOT NULL', 
+                (uid,)
+            ).fetchall()
 
-        # return the final grade of an assignment & its saved date
-        if grades is not None:
-            grades_list = [{'final_speech_grade': grade['final_speech_grade'], 'saved_date': grade['saved_date']} for grade in grades]
-        else:
-            # if user has no final grades, return empty list
-            grades_list = []
+        grades_list = [{'final_speech_grade': grade[0], 'saved_date': grade[1]} for grade in grades]
 
         return grades_list
 
     @staticmethod
     def count_history(uid):
-        # will fetch user history for number of attempts per save date (for coding attempts)
         with DatabaseConnection() as conn:
             cur = conn.cursor()
-            cur.execute("SELECT final_code_grade, saved_date FROM userhistory WHERE user_id = ?", (uid,))
-            records = cur.fetchall()
+            records = cur.execute("SELECT final_code_grade, saved_date FROM userhistory WHERE user_id = ?", (uid,)).fetchall()
 
-            if records is not None:
-                # Count occurrences of each saved date
-                attempts_count = {}
-                for record in records:
-                    saved_date = record[1]
-                    if saved_date in attempts_count:
-                        attempts_count[saved_date] += 1
-                    else:
-                        attempts_count[saved_date] = 1
+        if records:
+            attempts_count = {}
+            for record in records:
+                saved_date = record[1]
+                if saved_date in attempts_count:
+                    attempts_count[saved_date] += 1
+                else:
+                    attempts_count[saved_date] = 1
 
-                # Convert dictionary to list of dictionaries
-                attempts_list = [{'saved_date': date, 'count': count} for date, count in attempts_count.items()]
-            else:
-                attempts_list = []
+            attempts_list = [{'saved_date': date, 'count': count} for date, count in attempts_count.items()]
+        else:
+            attempts_list = []
 
-            return attempts_list
-
-
+        return attempts_list

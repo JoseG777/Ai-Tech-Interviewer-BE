@@ -42,6 +42,3 @@ def average(count, submissions):
         return 0
     ratio = count / submissions
     return round(ratio, 2)
-
-
-# print(getLeetCodeInfo("JoseG7"))
