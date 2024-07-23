@@ -51,6 +51,11 @@ def get_ai_response(prompt, problem):
     return response.choices[0].message["content"].strip()
 
 
+@app.route("/", methods=["GET", "HEAD"])
+def index():
+    return jsonify({"message": "Application is running."}), 200
+
+
 @app.route("/api/createUser", methods=["POST"])
 def create_user():
     try:
