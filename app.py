@@ -72,7 +72,7 @@ def create_user():
         return jsonify({"message": "User created successfully"}), 201
     except Exception as e:
         logging.error(f"Failed to create user: {str(e)}")
-        return jsonify({"message": f"Failed to create user: {str(e)}"}), 500
+        return jsonify({"message": f"Failed to create user: {str(e)}, {uid}, {email}"}), 500
 
 
 @app.route("/api/newUser", methods=["POST"])
