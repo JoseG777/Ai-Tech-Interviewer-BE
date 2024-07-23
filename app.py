@@ -3,6 +3,7 @@ from flask_cors import CORS
 from database.models import User, UserHistory
 import openai
 import os
+import logging
 
 # Function Imports
 from APIs.getLeetCode import getLeetCodeInfo
@@ -49,17 +50,23 @@ def create_user():
     leetcode_username = None
     user_level_description = "N/A"
 
-    User.add_user(uid, email, leetcode_username, user_level_description)
+    logging.info(f"Creating user with UID: {uid} and email: {email}")
+
     try:
+        User.add_user(uid, email, leetcode_username, user_level_description)
+        '''
         send_email(
             to_email=email,
             subject="Welcome to Interviewer AI!",
             body="Thank you for signing up. We're excited to apart of your technical interviewing journey!",
         )
+        '''
+        logging.info(f"User {uid} created successfully")
+        return jsonify({"message": "User created successfully"}), 201
     except Exception as e:
-        print(f"Failed to send email: {str(e)}")
+        logging.error(f"Failed to create user: {str(e)}")
+        return jsonify({"message": f"Failed to create user: {str(e)}"}), 500
 
-    return jsonify({"message": "User created successfully"}), 201
 
 
 @app.route("/api/newUser", methods=["POST"])
