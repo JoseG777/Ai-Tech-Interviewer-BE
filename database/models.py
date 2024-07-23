@@ -60,6 +60,16 @@ class User:
         return user
 
     @staticmethod
+    def get_email(username):
+        with DatabaseConnection() as conn:
+            cur = conn.execute(
+                "SELECT email FROM users WHERE username = ?", (username,)
+            )
+            email = cur.fetchone()
+
+        return email
+
+    @staticmethod
     def update_user(
         uid,
         leetcode_username,

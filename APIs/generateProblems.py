@@ -42,13 +42,14 @@ def generate_problem(
 
         Use the following User Profile:
 
-        Level Description and Goal: {user_level_description} and {current_goal}
+        Level Description: {user_level_description}
+        Goal: {current_goal}
         Easy LeetCode Problem Success Ratio: {easy_ratio * 100}%
         Medium LeetCode Problem Success Ratio: {medium_ratio * 100}%
         Hard LeetCode Problem Success Ratio: {hard_ratio * 100}%
         Overall LeetCode Problem Success Ratio: {overall_ratio * 100}%
         
-        Ensure the problem fits their skill set. If specific data structures or custom objects are needed, provide necessary class definitions or additional code. Make sure the problem is similar to a standard LeetCode problem and appropriately challenging. ONLY INCLUDE SPECIFIED STRUCTURE, NOTHING ELSE.
+        Ensure the problem fits their skill set. If specific data structures or custom objects are needed, provide necessary class definitions or additional code. Make sure the problem is similar to a standard LeetCode problem and appropriately challenging. ONLY INCLUDE SPECIFIED STRUCTURE, NO MARKDOWN, AND NOTHING OUTSIDE OF SPECIFIED STRUCTURE.
     """
 
     response = openai.ChatCompletion.create(

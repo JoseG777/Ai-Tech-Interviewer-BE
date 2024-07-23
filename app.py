@@ -19,13 +19,16 @@ openai.api_key = os.getenv("OPEN_AI_API_KEY")
 
 logging.basicConfig(level=logging.DEBUG)  # Set logging level to DEBUG
 
+
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({"error": "Internal server error"}), 500
 
+
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({"error": "Not found"}), 404
+
 
 def get_ai_response(prompt, problem):
     system_prompt = f"""
@@ -61,8 +64,8 @@ def create_user():
     data = request.get_json()
     uid = data.get("uid")
     email = data.get("email")
-    username = data['username']
-    
+    username = data["username"]
+
     if not uid or not email:
         return jsonify({"message": "Missing uid or email"}), 400
 
@@ -70,7 +73,7 @@ def create_user():
         leetcode_username = None
         user_level_description = "N/A"
         User.add_user(uid, username, email, leetcode_username, user_level_description)
-        
+
         return jsonify({"message": "User created successfully"}), 201
 
     except Exception as e:
@@ -114,18 +117,18 @@ def new_user():
     except Exception as e:
         logging.error(f"Failed to update user: {str(e)}")
         return jsonify({"message": f"Failed to update user: {str(e)}"}), 500
-    
 
-@app.route('/api/login', methods=['POST'])
+
+@app.route("/api/login", methods=["POST"])
 def log_user():
     data = request.get_json()
-    username = data.get('username')
+    username = data.get("username")
     email = User.get_email(username)
 
     if email is not None:
-        return jsonify({'email': email[0]}), 201
+        return jsonify({"email": email[0]}), 201
     else:
-        return jsonify({'error': 'Username not found'}), 404
+        return jsonify({"error": "Username not found"}), 404
 
 
 @app.route("/api/generateProblem", methods=["POST"])
@@ -181,8 +184,8 @@ def evaluate_response_endpoint():
             speech_evaluation2 = speech_feedback = final_speech_grade = None
             if speech_input != "N/A":
                 speech_evaluation = evaluate_speech(problem, response, speech_input)
-                speech_evaluation2, speech_feedback, final_speech_grade = parse_evaluation(
-                    speech_evaluation
+                speech_evaluation2, speech_feedback, final_speech_grade = (
+                    parse_evaluation(speech_evaluation)
                 )
                 final_speech_grade = int(final_speech_grade)
 
@@ -305,7 +308,7 @@ def send_email_endpoint():
         return jsonify({"message": f"Failed to send email: {str(e)}"}), 500
 
 
-'''
+"""
 @app.route("/api/sendSignInEmail", methods=["POST"])
 def send_sign_in_email():
     try:
@@ -319,7 +322,7 @@ def send_sign_in_email():
         return jsonify({"message": "Sign-in email sent successfully"}), 200
     except Exception as e:
         return jsonify({"message": f"Failed to send sign-in email: {str(e)}"}), 500
-'''
+"""
 
 
 @app.route("/api/getUsers", methods=["GET"])
