@@ -65,7 +65,7 @@ def create_user():
     if not uid or not email:
         return jsonify({"message": "Missing uid or email"}), 400
 
-    logging.info(f"Creating user with UID: {uid} and email: {email}")
+    # logging.info(f"Creating user with UID: {uid} and email: {email}")
 
     try:
         leetcode_username = None
@@ -78,7 +78,7 @@ def create_user():
         #     body="Thank you for signing up. We're excited to be part of your technical interviewing journey!"
         # )
 
-        logging.info(f"User {uid} created successfully")
+        # logging.info(f"User {uid} created successfully")
         return jsonify({"message": "User created successfully"}), 201
 
     except Exception as e:
@@ -103,7 +103,7 @@ def new_user():
                 leetcode_username
             )
 
-        logging.info(f"Updating user: {uid}, {leetcode_username}, {coding_level}, {goal}, {upcoming_interview}, {overall_ratio}, {easy_ratio}, {medium_ratio}, {hard_ratio}")
+        # logging.info(f"Updating user: {uid}, {leetcode_username}, {coding_level}, {goal}, {upcoming_interview}, {overall_ratio}, {easy_ratio}, {medium_ratio}, {hard_ratio}")
 
         User.update_user(
             uid,
@@ -117,7 +117,7 @@ def new_user():
             hard_ratio,
         )
 
-        logging.info(f"User {uid} updated successfully")
+        # logging.info(f"User {uid} updated successfully")
         return jsonify({"message": "New user info received"}), 201
     except Exception as e:
         logging.error(f"Failed to update user: {str(e)}")
