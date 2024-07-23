@@ -33,6 +33,13 @@ def delete_user_by_uid(uid):
         print(f"User with UID {uid} has been deleted.")
     except Exception as e:
         print(f"Error while deleting user with UID {uid}: {str(e)}")
+def clear_user_history():
+    conn = get_connection()
+    try:
+        conn.execute("DELETE FROM userhistory")
+        conn.commit()
+    except Exception as e:
+        print(f"Error while clearing the 'users' table: {str(e)}")
     finally:
         conn.close()
 
