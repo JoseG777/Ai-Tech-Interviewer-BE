@@ -143,7 +143,7 @@ def evaluate_response_endpoint():
             speech_evaluation = evaluate_speech(problem, response, speech_input)
             speech_evaluation2, speech_feedback, final_speech_grade = parse_evaluation(speech_evaluation)
             final_speech_grade = int(final_speech_grade)
-            print(speech_evaluation2, speech_feedback, final_speech_grade)
+            # print(speech_evaluation2, speech_feedback, final_speech_grade)
 
         UserHistory.update_history(uid, problem, response, code_evaluation2, feedback, final_grade,
                                    speech_evaluation2, speech_feedback, final_speech_grade)
@@ -161,7 +161,7 @@ def evaluate_response_endpoint():
             } if speech_input != "N/A" else None
         }
 
-        print(response_data)
+        # print(response_data)
         return jsonify(response_data)
 
     return jsonify({"evaluation": "error"})
@@ -269,6 +269,19 @@ def send_sign_in_email():
         return jsonify({"message": "Sign-in email sent successfully"}), 200
     except Exception as e:
         return jsonify({"message": f"Failed to send sign-in email: {str(e)}"}), 500
+
+
+@app.route('/api/getUserHistory', methods=['GET'])
+def get_user_history():
+    uid = request.args.get('uid')
+    user = User.get_user_id(uid)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    history = UserHistory.get_user_history(uid)
+
+    return jsonify({'history': history})
+
 
 if __name__ == "__main__":
     from database.initialization import initialize_database

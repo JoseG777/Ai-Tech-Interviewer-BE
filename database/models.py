@@ -158,7 +158,39 @@ class UserHistory:
                  speech_evaluation, speech_feedback, final_speech_grade, save_date)
             )
             conn.commit()
+            
+            
+    @staticmethod
+    def get_user_history(uid):
+        with DatabaseConnection() as conn:
+            cur = conn.cursor()
+            history = cur.execute(
+                'SELECT user_question, user_response, '
+                'COALESCE(code_evaluation, "N/A"), COALESCE(code_feedback, "N/A"), '
+                'COALESCE(final_code_grade, "N/A"), COALESCE(speech_evaluation, "N/A"), '
+                'COALESCE(speech_feedback, "N/A"), COALESCE(final_speech_grade, "N/A"), '
+                'COALESCE(saved_date, "N/A") '
+                'FROM userhistory WHERE user_id = ?', 
+                (uid,)
+            ).fetchall()
 
+        history_list = [{
+            'user_question': record[0],
+            'user_response': record[1],
+            'code_evaluation': record[2],
+            'code_feedback': record[3],
+            'final_code_grade': record[4],
+            'speech_evaluation': record[5],
+            'speech_feedback': record[6],
+            'final_speech_grade': record[7],
+            'saved_date': record[8]
+        } for record in history]
+
+        return history_list
+
+
+    
+    
     @staticmethod
     def get_code_grades(uid):
         with DatabaseConnection() as conn:
