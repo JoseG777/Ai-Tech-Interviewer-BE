@@ -91,7 +91,7 @@ def new_user():
         goal = data["goal"]
         upcoming_interview = data["upcoming_interview"]
 
-        overall_ratio, easy_ratio, medium_ratio, hard_ratio = None, None, None, None
+        overall_ratio, easy_ratio, medium_ratio, hard_ratio = 0.0, 0.0, 0.0, 0.0
 
         if leetcode_username != "N/A":
             overall_ratio, easy_ratio, medium_ratio, hard_ratio = getLeetCodeInfo(
