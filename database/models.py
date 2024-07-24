@@ -162,6 +162,18 @@ class UserHistory:
                 )
                 """
             )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS daily_attempts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL,
+                    date TEXT NOT NULL,
+                    count INTEGER NOT NULL DEFAULT 0,
+                    UNIQUE(user_id, date),
+                    FOREIGN KEY (user_id) REFERENCES users (uid) ON DELETE CASCADE
+                )
+                """
+            )
             conn.commit()
 
     @staticmethod
@@ -195,6 +207,21 @@ class UserHistory:
                     final_speech_grade,
                     save_date,
                 ),
+            )
+            conn.commit()
+            
+    @staticmethod
+    def update_daily_attempts(user_id):
+        save_date = datetime.now().strftime("%Y-%m-%d")
+        with DatabaseConnection() as conn:
+            conn.execute(
+                """
+                INSERT INTO daily_attempts (user_id, date, count)
+                VALUES (?, ?, 1)
+                ON CONFLICT(user_id, date)
+                DO UPDATE SET count = count + 1
+                """,
+                (user_id, save_date)
             )
             conn.commit()
 
@@ -264,24 +291,13 @@ class UserHistory:
         with DatabaseConnection() as conn:
             cur = conn.cursor()
             records = cur.execute(
-                "SELECT final_code_grade, saved_date FROM userhistory WHERE user_id = ?",
+                "SELECT date, count FROM daily_attempts WHERE user_id = ?",
                 (uid,),
             ).fetchall()
 
-        if records:
-            attempts_count = {}
-            for record in records:
-                saved_date = record[1]
-                if saved_date in attempts_count:
-                    attempts_count[saved_date] += 1
-                else:
-                    attempts_count[saved_date] = 1
-
-            attempts_list = [
-                {"saved_date": date, "count": count}
-                for date, count in attempts_count.items()
-            ]
-        else:
-            attempts_list = []
+        attempts_list = [
+            {"saved_date": record[0], "count": record[1]} for record in records
+        ]
+        
 
         return attempts_list

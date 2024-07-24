@@ -200,6 +200,8 @@ def evaluate_response_endpoint():
                 speech_feedback,
                 final_speech_grade,
             )
+            
+            UserHistory.update_daily_attempts(uid)
 
             response_data = {
                 "code_evaluation": {
@@ -306,23 +308,6 @@ def send_email_endpoint():
     except Exception as e:
         logging.error(f"Failed to send email: {str(e)}")
         return jsonify({"message": f"Failed to send email: {str(e)}"}), 500
-
-
-"""
-@app.route("/api/sendSignInEmail", methods=["POST"])
-def send_sign_in_email():
-    try:
-        data = request.get_json()
-        to_email = data["to_email"]
-        send_email(
-            to_email=to_email,
-            subject="Successful Sign-In",
-            body="You have successfully signed in to your account. You are one step closer to mastering the technicual interview!"
-        )
-        return jsonify({"message": "Sign-in email sent successfully"}), 200
-    except Exception as e:
-        return jsonify({"message": f"Failed to send sign-in email: {str(e)}"}), 500
-"""
 
 
 @app.route("/api/getUsers", methods=["GET"])
