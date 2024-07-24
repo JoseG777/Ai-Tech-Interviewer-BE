@@ -24,7 +24,17 @@ def generate_problem(
     )
 
     gpt_prompt = f"""
-        Generate a {language} coding problem tailored to a user's profile and skill level, following this structure:
+    
+        Generate a {language} coding problem tailored to a user's profile and skill level detailed below:
+        
+        Level: {user_level_description}
+        Goal: {current_goal}
+        Easy LeetCode Success Rate: {easy_ratio * 100}%
+        Medium LeetCode Success Rate: {medium_ratio * 100}%
+        Hard LeetCode Success Rate: {hard_ratio * 100}%
+        Overall LeetCode Success Rate: {overall_ratio * 100}%
+
+        Output your response in the following this structure:
 
         Problem Description: A detailed description of the problem.
 
@@ -38,15 +48,7 @@ def generate_problem(
 
         Constraints: List all constraints.
 
-        Function Signature: Provide the function signature.
-
-        User Profile:
-        Level: {user_level_description}
-        Goal: {current_goal}
-        Easy LeetCode Success Rate: {easy_ratio * 100}%
-        Medium LeetCode Success Rate: {medium_ratio * 100}%
-        Hard LeetCode Success Rate: {hard_ratio * 100}%
-        Overall LeetCode Success Rate: {overall_ratio * 100}%
+        Function Signature: Provide the function signature and ONLY the function signature. No markdown or additional notes.
 
         Ensure the problem fits their skill set. If specific data structures or custom objects are needed, provide necessary class definitions or additional code. Only include the specified structure; do not add any notes or markdown.
     """
