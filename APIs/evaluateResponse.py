@@ -27,7 +27,7 @@ def evaluate_response(prompt, user_response):
     """
 
     response = openai.ChatCompletion.create(
-        model="gpt-4", messages=[{"role": "user", "content": gpt_prompt}]
+        model="gpt-4o", messages=[{"role": "user", "content": gpt_prompt}]
     )
     evaluation = response.choices[0].message["content"].strip()
 

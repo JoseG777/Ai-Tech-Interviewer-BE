@@ -22,6 +22,13 @@ def generate_problem(
         if upcoming_interview != "N/A"
         else ""
     )
+    
+    easy_percentage = float(easy_ratio) * 100
+    medium_percentage = float(medium_ratio) * 100
+    hard_percentage = float(hard_ratio) * 100
+    overall_percentage = float(overall_ratio) * 100
+    
+    # print("******************\n\n\n\n\n\n",easy_percentage,"\n\n\n\n\n\n******************")
 
     gpt_prompt = f"""
     
@@ -29,10 +36,10 @@ def generate_problem(
         
         Level: {user_level_description}
         Goal: {current_goal}
-        Easy LeetCode Success Rate: {easy_ratio * 100}%
-        Medium LeetCode Success Rate: {medium_ratio * 100}%
-        Hard LeetCode Success Rate: {hard_ratio * 100}%
-        Overall LeetCode Success Rate: {overall_ratio * 100}%
+        Easy LeetCode Success Rate: {easy_percentage}%
+        Medium LeetCode Success Rate: {medium_percentage}%
+        Hard LeetCode Success Rate: {hard_percentage}%
+        Overall LeetCode Success Rate: {overall_percentage}%
         {interview_info}
 
         Ensure the problem fits their skill set. If specific data structures or custom objects are needed, provide necessary class definitions or additional code. Only include the specified structure; do not add any notes or markdown. Output your response in the following this structure:
@@ -54,7 +61,7 @@ def generate_problem(
     """
 
     response = openai.ChatCompletion.create(
-        model="gpt-4", messages=[{"role": "user", "content": gpt_prompt}]
+        model="gpt-4o", messages=[{"role": "user", "content": gpt_prompt}]
     )
     recommendation = response.choices[0].message["content"].strip()
 
