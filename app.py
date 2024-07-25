@@ -11,7 +11,6 @@ from APIs.generateProblems import generate_problem
 from APIs.evaluateResponse import evaluate_response, evaluate_speech, parse_evaluation
 from messaging.emailing import send_email
 
-
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
@@ -19,16 +18,13 @@ openai.api_key = os.getenv("OPEN_AI_API_KEY")
 
 logging.basicConfig(level=logging.DEBUG)  # Set logging level to DEBUG
 
-
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({"error": "Internal server error"}), 500
 
-
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({"error": "Not found"}), 404
-
 
 def get_ai_response(prompt, problem):
     system_prompt = f"""
@@ -53,11 +49,9 @@ def get_ai_response(prompt, problem):
     )
     return response.choices[0].message["content"].strip()
 
-
 @app.route("/", methods=["GET", "HEAD"])
 def index():
     return jsonify({"message": "Application is running."}), 200
-
 
 @app.route("/api/createUser", methods=["POST"])
 def create_user():
@@ -79,7 +73,6 @@ def create_user():
     except Exception as e:
         logging.error(f"Failed to create user: {str(e)}")
         return jsonify({"message": f"Failed to create user: {str(e)}"}), 500
-
 
 @app.route("/api/newUser", methods=["POST"])
 def new_user():
@@ -115,7 +108,6 @@ def new_user():
         logging.error(f"Failed to update user: {str(e)}")
         return jsonify({"message": f"Failed to update user: {str(e)}"}), 500
 
-
 @app.route("/api/login", methods=["POST"])
 def log_user():
     data = request.get_json()
@@ -126,7 +118,6 @@ def log_user():
         return jsonify({"email": email[0]}), 201
     else:
         return jsonify({"error": "Username not found"}), 404
-
 
 @app.route("/api/generateProblem", methods=["POST"])
 def generate_problem_endpoint():
@@ -162,7 +153,6 @@ def generate_problem_endpoint():
     except Exception as e:
         logging.error(f"Failed to generate problem: {str(e)}")
         return jsonify({"message": f"Failed to generate problem: {str(e)}"}), 500
-
 
 @app.route("/api/evaluateResponse", methods=["POST"])
 def evaluate_response_endpoint():
@@ -224,7 +214,6 @@ def evaluate_response_endpoint():
         logging.error(f"Failed to evaluate response: {str(e)}")
         return jsonify({"message": f"Failed to evaluate response: {str(e)}"}), 500
 
-
 @app.route("/api/chat", methods=["POST"])
 def chat():
     try:
@@ -237,7 +226,6 @@ def chat():
         logging.error(f"Failed to get chat response: {str(e)}")
         return jsonify({"message": f"Failed to get chat response: {str(e)}"}), 500
 
-
 @app.route("/api/deleteUser", methods=["POST"])
 def delete_user():
     try:
@@ -249,7 +237,6 @@ def delete_user():
     except Exception as e:
         logging.error(f"Failed to delete user: {str(e)}")
         return jsonify({"message": f"Failed to delete user: {str(e)}"}), 500
-
 
 @app.route("/api/updateGoal", methods=["POST"])
 def update_goal():
@@ -264,7 +251,6 @@ def update_goal():
         logging.error(f"Failed to update goal: {str(e)}")
         return jsonify({"message": f"Failed to update goal: {str(e)}"}), 500
 
-
 @app.route("/api/updateInterview", methods=["POST"])
 def update_interview():
     try:
@@ -277,7 +263,6 @@ def update_interview():
     except Exception as e:
         logging.error(f"Failed to update interview: {str(e)}")
         return jsonify({"message": f"Failed to update interview: {str(e)}"}), 500
-
 
 @app.route("/api/updateLevel", methods=["POST"])
 def update_level():
@@ -292,7 +277,6 @@ def update_level():
         logging.error(f"Failed to update level: {str(e)}")
         return jsonify({"message": f"Failed to update level: {str(e)}"}), 500
 
-
 @app.route("/api/sendEmail", methods=["POST"])
 def send_email_endpoint():
     try:
@@ -305,7 +289,6 @@ def send_email_endpoint():
     except Exception as e:
         logging.error(f"Failed to send email: {str(e)}")
         return jsonify({"message": f"Failed to send email: {str(e)}"}), 500
-
 
 @app.route("/api/getUsers", methods=["GET"])
 def get_user():
@@ -337,7 +320,6 @@ def get_user():
         logging.error(f"Failed to get user: {str(e)}")
         return jsonify({"message": f"Failed to get user: {str(e)}"}), 500
 
-
 @app.route("/api/getUserHistory", methods=["GET"])
 def get_user_history():
     try:
@@ -352,7 +334,6 @@ def get_user_history():
     except Exception as e:
         logging.error(f"Failed to get user history: {str(e)}")
         return jsonify({"message": f"Failed to get user history: {str(e)}"}), 500
-
 
 if __name__ == "__main__":
     from database.initialization import initialize_database

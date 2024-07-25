@@ -1,17 +1,15 @@
-import sqlitecloud
-from database.config import DATABASE_URL, DATABASE_NAME
+import sqlite3
+from contextlib import contextmanager
 
+DATABASE_PATH = "local_database.db" 
 
 def get_connection():
-    conn = sqlitecloud.connect(DATABASE_URL)
-    conn.execute(f"USE DATABASE {DATABASE_NAME}")
-    return conn
+    return sqlite3.connect(DATABASE_PATH)
 
-
-class DatabaseConnection:
-    def __enter__(self):
-        self.conn = get_connection()
-        return self.conn
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.conn.close()
+@contextmanager
+def DatabaseConnection():
+    conn = get_connection()
+    try:
+        yield conn
+    finally:
+        conn.close()
