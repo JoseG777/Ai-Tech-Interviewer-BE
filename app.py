@@ -197,7 +197,7 @@ def evaluate_response_endpoint():
                 speech_feedback,
                 final_speech_grade,
             )
-            
+
             UserHistory.update_daily_attempts(uid)
 
             response_data = {

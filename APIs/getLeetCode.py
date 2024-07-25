@@ -30,7 +30,9 @@ def getLeetCodeInfo(username):
             return "N/A"
 
         stats = data["data"]["matchedUser"]["submitStats"]["acSubmissionNum"]
-        ratios = [average(int(stat["count"]), int(stat["submissions"])) for stat in stats]
+        ratios = [
+            average(int(stat["count"]), int(stat["submissions"])) for stat in stats
+        ]
         return ratios[0], ratios[1], ratios[2], ratios[3]
     except requests.RequestException as re:
         logging.error(f"RequestException: {str(re)}")

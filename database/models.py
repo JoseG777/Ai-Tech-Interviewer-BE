@@ -209,7 +209,7 @@ class UserHistory:
                 ),
             )
             conn.commit()
-            
+
     @staticmethod
     def update_daily_attempts(user_id):
         save_date = datetime.now().strftime("%Y-%m-%d")
@@ -221,7 +221,7 @@ class UserHistory:
                 ON CONFLICT(user_id, date)
                 DO UPDATE SET count = count + 1
                 """,
-                (user_id, save_date)
+                (user_id, save_date),
             )
             conn.commit()
 
@@ -298,6 +298,5 @@ class UserHistory:
         attempts_list = [
             {"saved_date": record[0], "count": record[1]} for record in records
         ]
-        
 
         return attempts_list

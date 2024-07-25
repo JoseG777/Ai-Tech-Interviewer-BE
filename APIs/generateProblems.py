@@ -18,7 +18,7 @@ def generate_problem(
     upcoming_interview,
 ):
     interview_info = (
-        f"This problem is tailored for an upcoming interview with {upcoming_interview}."
+        f"Upcoming Interview: This problem is tailored for an upcoming interview with {upcoming_interview}."
         if upcoming_interview != "N/A"
         else ""
     )
@@ -33,8 +33,9 @@ def generate_problem(
         Medium LeetCode Success Rate: {medium_ratio * 100}%
         Hard LeetCode Success Rate: {hard_ratio * 100}%
         Overall LeetCode Success Rate: {overall_ratio * 100}%
+        {interview_info}
 
-        Output your response in the following this structure:
+        Ensure the problem fits their skill set. If specific data structures or custom objects are needed, provide necessary class definitions or additional code. Only include the specified structure; do not add any notes or markdown. Output your response in the following this structure:
 
         Problem Description: A detailed description of the problem.
 
@@ -48,9 +49,8 @@ def generate_problem(
 
         Constraints: List all constraints.
 
-        Function Signature: Provide the function signature and ONLY the function signature. No markdown or additional notes.
+        Function Signature: Provide the function signature. ONLY RETURN FUNCTION SIGNATURE. DO NOT RETURN ANYTHING FROM THIS POINT ON
 
-        Ensure the problem fits their skill set. If specific data structures or custom objects are needed, provide necessary class definitions or additional code. Only include the specified structure; do not add any notes or markdown.
     """
 
     response = openai.ChatCompletion.create(
