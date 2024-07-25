@@ -94,11 +94,9 @@ def new_user():
         overall_ratio, easy_ratio, medium_ratio, hard_ratio = 0.0, 0.0, 0.0, 0.0
 
         if leetcode_username != "N/A":
-            overall_ratio, easy_ratio, medium_ratio, hard_ratio = getLeetCodeInfo(
-                leetcode_username
-            )
-
-        # logging.info(f"Updating user: {uid}, {leetcode_username}, {coding_level}, {goal}, {upcoming_interview}, {overall_ratio}, {easy_ratio}, {medium_ratio}, {hard_ratio}")
+            leetcode_info = getLeetCodeInfo(leetcode_username)
+            if leetcode_info != "N/A":
+                overall_ratio, easy_ratio, medium_ratio, hard_ratio = leetcode_info
 
         User.update_user(
             uid,
@@ -112,7 +110,6 @@ def new_user():
             hard_ratio,
         )
 
-        # logging.info(f"User {uid} updated successfully")
         return jsonify({"message": "New user info received"}), 201
     except Exception as e:
         logging.error(f"Failed to update user: {str(e)}")

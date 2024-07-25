@@ -1,4 +1,5 @@
 import requests
+import logging
 
 
 def getLeetCodeInfo(username):
@@ -19,22 +20,27 @@ def getLeetCodeInfo(username):
 
     url = "https://leetcode.com/graphql"
 
-    response = requests.post(url, json={"query": query})
+    try:
+        response = requests.post(url, json={"query": query})
+        response.raise_for_status()
 
-    if response.status_code == 200:
         data = response.json()
-        test = [
-            [
-                stats["difficulty"],
-                average(int(stats["count"]), int(stats["submissions"])),
-            ]
-            for stats in data["data"]["matchedUser"]["submitStats"]["acSubmissionNum"]
-        ]
-        return test[0][1], test[1][1], test[2][1], test[3][1]
-    else:
-        print(
-            f"Query failed to run by returning code of {response.status_code}. {response.text}"
-        )
+        if "errors" in data:
+            logging.error(f"GraphQL errors: {data['errors']}")
+            return "N/A"
+
+        stats = data["data"]["matchedUser"]["submitStats"]["acSubmissionNum"]
+        ratios = [average(int(stat["count"]), int(stat["submissions"])) for stat in stats]
+        return ratios[0], ratios[1], ratios[2], ratios[3]
+    except requests.RequestException as re:
+        logging.error(f"RequestException: {str(re)}")
+        return "N/A"
+    except KeyError as ke:
+        logging.error(f"KeyError: {str(ke)}")
+        return "N/A"
+    except Exception as e:
+        logging.error(f"Unexpected error: {str(e)}")
+        return "N/A"
 
 
 def average(count, submissions):
