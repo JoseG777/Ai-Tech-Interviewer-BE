@@ -11,6 +11,7 @@ from APIs.generateProblems import generate_problem
 from APIs.evaluateResponse import evaluate_response, evaluate_speech, parse_evaluation
 from messaging.emailing import send_email
 
+
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
@@ -18,13 +19,16 @@ openai.api_key = os.getenv("OPEN_AI_API_KEY")
 
 logging.basicConfig(level=logging.DEBUG)  # Set logging level to DEBUG
 
+
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({"error": "Internal server error"}), 500
 
+
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({"error": "Not found"}), 404
+
 
 def get_ai_response(prompt, problem):
     system_prompt = f"""
@@ -49,10 +53,13 @@ def get_ai_response(prompt, problem):
     )
     return response.choices[0].message["content"].strip()
 
+
 @app.route("/", methods=["GET", "HEAD"])
 def index():
     return jsonify({"message": "Application is running."}), 200
 
+
+#**************************** SIGNING UP / SIGNING IN ****************************
 @app.route("/api/createUser", methods=["POST"])
 def create_user():
     data = request.get_json()
@@ -74,6 +81,7 @@ def create_user():
         logging.error(f"Failed to create user: {str(e)}")
         return jsonify({"message": f"Failed to create user: {str(e)}"}), 500
 
+
 @app.route("/api/newUser", methods=["POST"])
 def new_user():
     try:
@@ -86,7 +94,7 @@ def new_user():
 
         overall_ratio, easy_ratio, medium_ratio, hard_ratio = 0.0, 0.0, 0.0, 0.0
 
-        if leetcode_username != "N/A":
+        if leetcode_username:
             leetcode_info = getLeetCodeInfo(leetcode_username)
             if leetcode_info != "N/A":
                 overall_ratio, easy_ratio, medium_ratio, hard_ratio = leetcode_info
@@ -108,6 +116,7 @@ def new_user():
         logging.error(f"Failed to update user: {str(e)}")
         return jsonify({"message": f"Failed to update user: {str(e)}"}), 500
 
+
 @app.route("/api/login", methods=["POST"])
 def log_user():
     data = request.get_json()
@@ -119,6 +128,8 @@ def log_user():
     else:
         return jsonify({"error": "Username not found"}), 404
 
+
+#**************************** Problem generation / evaluation ****************************
 @app.route("/api/generateProblem", methods=["POST"])
 def generate_problem_endpoint():
     try:
@@ -153,6 +164,7 @@ def generate_problem_endpoint():
     except Exception as e:
         logging.error(f"Failed to generate problem: {str(e)}")
         return jsonify({"message": f"Failed to generate problem: {str(e)}"}), 500
+
 
 @app.route("/api/evaluateResponse", methods=["POST"])
 def evaluate_response_endpoint():
@@ -214,6 +226,7 @@ def evaluate_response_endpoint():
         logging.error(f"Failed to evaluate response: {str(e)}")
         return jsonify({"message": f"Failed to evaluate response: {str(e)}"}), 500
 
+
 @app.route("/api/chat", methods=["POST"])
 def chat():
     try:
@@ -226,6 +239,8 @@ def chat():
         logging.error(f"Failed to get chat response: {str(e)}")
         return jsonify({"message": f"Failed to get chat response: {str(e)}"}), 500
 
+
+#**************************** DELETE USER ****************************
 @app.route("/api/deleteUser", methods=["POST"])
 def delete_user():
     try:
@@ -238,6 +253,8 @@ def delete_user():
         logging.error(f"Failed to delete user: {str(e)}")
         return jsonify({"message": f"Failed to delete user: {str(e)}"}), 500
 
+
+#**************************** Update info ****************************
 @app.route("/api/updateGoal", methods=["POST"])
 def update_goal():
     try:
@@ -250,6 +267,7 @@ def update_goal():
     except Exception as e:
         logging.error(f"Failed to update goal: {str(e)}")
         return jsonify({"message": f"Failed to update goal: {str(e)}"}), 500
+
 
 @app.route("/api/updateInterview", methods=["POST"])
 def update_interview():
@@ -264,6 +282,7 @@ def update_interview():
         logging.error(f"Failed to update interview: {str(e)}")
         return jsonify({"message": f"Failed to update interview: {str(e)}"}), 500
 
+
 @app.route("/api/updateLevel", methods=["POST"])
 def update_level():
     try:
@@ -276,6 +295,7 @@ def update_level():
     except Exception as e:
         logging.error(f"Failed to update level: {str(e)}")
         return jsonify({"message": f"Failed to update level: {str(e)}"}), 500
+
 
 @app.route("/api/sendEmail", methods=["POST"])
 def send_email_endpoint():
@@ -290,6 +310,8 @@ def send_email_endpoint():
         logging.error(f"Failed to send email: {str(e)}")
         return jsonify({"message": f"Failed to send email: {str(e)}"}), 500
 
+
+#**************************** Get Info ****************************
 @app.route("/api/getUsers", methods=["GET"])
 def get_user():
     try:
@@ -301,11 +323,13 @@ def get_user():
         code_grades = UserHistory.get_code_grades(uid)
         speech_grades = UserHistory.get_speech_grades(uid)
         attempts = UserHistory.count_history(uid)
+        lc_stats = UserHistory.get_leetcode_stats(uid)
 
         return jsonify(
             {
                 "user": {
                     "username": user[2],
+                    "leetcode_username": user[3] if user[3] else None, 
                     "level_description": user[4],
                     "current_goal": user[9],
                     "upcoming_interview": user[10],
@@ -314,11 +338,13 @@ def get_user():
                 "code_grades": code_grades,
                 "speech_grades": speech_grades,
                 "attempts": attempts,
+                "stats": lc_stats
             }
         )
     except Exception as e:
         logging.error(f"Failed to get user: {str(e)}")
         return jsonify({"message": f"Failed to get user: {str(e)}"}), 500
+
 
 @app.route("/api/getUserHistory", methods=["GET"])
 def get_user_history():
@@ -334,6 +360,7 @@ def get_user_history():
     except Exception as e:
         logging.error(f"Failed to get user history: {str(e)}")
         return jsonify({"message": f"Failed to get user history: {str(e)}"}), 500
+
 
 if __name__ == "__main__":
     from database.initialization import initialize_database

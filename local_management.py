@@ -28,4 +28,4 @@ def clear_user_history():
         conn.close()
 
 if __name__ == '__main__':
-    delete_user_by_uid('8Wp3JShPfvOk2v1uV5ct0DoUysf1')  
+    delete_user_by_uid('')  

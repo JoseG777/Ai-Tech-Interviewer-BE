@@ -16,8 +16,7 @@ def insert_test_data(uid):
             (uid, '2024-07-22', 10),
             (uid, '2024-07-23', 5),
             (uid, '2024-07-24', 8),
-            (uid, '2024-07-25', 2),
-            (uid, '2024-07-26', 3)
+            (uid, '2024-07-25', 2)
         ])
         conn.commit()
         print(f"Test data has been inserted into the 'daily_attempts' table for user_id {uid}.")
@@ -28,4 +27,4 @@ def insert_test_data(uid):
 
 if __name__ == '__main__':
     # replace with your UID, get from local_display.py
-    insert_test_data("LsAqtdlAKiRruTiPKbru0GoxaEH2")
+    insert_test_data("JbzkUj4HsENtUdxQ4xAyJ92jZS12")

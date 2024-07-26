@@ -12,7 +12,7 @@ class User:
                     uid TEXT PRIMARY KEY NOT NULL,
                     email TEXT UNIQUE NOT NULL,
                     username TEXT UNIQUE NOT NULL,
-                    leetcode_username TEXT UNIQUE,
+                    leetcode_username TEXT,
                     user_level_description TEXT NOT NULL,
                     overall_ratio FLOAT DEFAULT 0.0,
                     easy_ratio FLOAT DEFAULT 0.0,
@@ -300,3 +300,20 @@ class UserHistory:
         ]
 
         return attempts_list
+    
+    
+    @staticmethod
+    def get_leetcode_stats(uid):
+        with DatabaseConnection() as conn:
+            cur = conn.cursor()
+            lc_ratios = cur.execute(
+                "SELECT overall_ratio, easy_ratio, medium_ratio, hard_ratio FROM users WHERE uid = ?",
+                (uid,),
+            ).fetchone()  
+
+        if lc_ratios:
+            lc_stats = [float(ratio) * 100 for ratio in lc_ratios] 
+        else:
+            lc_stats = [0.0, 0.0, 0.0, 0.0] 
+
+        return lc_stats
