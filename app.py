@@ -59,6 +59,7 @@ def index():
     return jsonify({"message": "Application is running."}), 200
 
 
+#**************************** SIGNING UP / SIGNING IN ****************************
 @app.route("/api/createUser", methods=["POST"])
 def create_user():
     data = request.get_json()
@@ -93,7 +94,7 @@ def new_user():
 
         overall_ratio, easy_ratio, medium_ratio, hard_ratio = 0.0, 0.0, 0.0, 0.0
 
-        if leetcode_username != "N/A":
+        if leetcode_username:
             leetcode_info = getLeetCodeInfo(leetcode_username)
             if leetcode_info != "N/A":
                 overall_ratio, easy_ratio, medium_ratio, hard_ratio = leetcode_info
@@ -128,6 +129,7 @@ def log_user():
         return jsonify({"error": "Username not found"}), 404
 
 
+#**************************** Problem generation / evaluation ****************************
 @app.route("/api/generateProblem", methods=["POST"])
 def generate_problem_endpoint():
     try:
@@ -238,6 +240,7 @@ def chat():
         return jsonify({"message": f"Failed to get chat response: {str(e)}"}), 500
 
 
+#**************************** DELETE USER ****************************
 @app.route("/api/deleteUser", methods=["POST"])
 def delete_user():
     try:
@@ -251,6 +254,7 @@ def delete_user():
         return jsonify({"message": f"Failed to delete user: {str(e)}"}), 500
 
 
+#**************************** Update info ****************************
 @app.route("/api/updateGoal", methods=["POST"])
 def update_goal():
     try:
@@ -307,6 +311,7 @@ def send_email_endpoint():
         return jsonify({"message": f"Failed to send email: {str(e)}"}), 500
 
 
+#**************************** Get Info ****************************
 @app.route("/api/getUsers", methods=["GET"])
 def get_user():
     try:
@@ -318,11 +323,13 @@ def get_user():
         code_grades = UserHistory.get_code_grades(uid)
         speech_grades = UserHistory.get_speech_grades(uid)
         attempts = UserHistory.count_history(uid)
+        lc_stats = UserHistory.get_leetcode_stats(uid)
 
         return jsonify(
             {
                 "user": {
                     "username": user[2],
+                    "leetcode_username": user[3] if user[3] else None, 
                     "level_description": user[4],
                     "current_goal": user[9],
                     "upcoming_interview": user[10],
@@ -331,6 +338,7 @@ def get_user():
                 "code_grades": code_grades,
                 "speech_grades": speech_grades,
                 "attempts": attempts,
+                "stats": lc_stats
             }
         )
     except Exception as e:
