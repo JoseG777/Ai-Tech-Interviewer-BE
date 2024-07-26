@@ -18,7 +18,7 @@ def evaluate_response(prompt, user_response):
     User's Response:
     {user_response}
 
-    Do not grade on function signature or class structure as those are given to the user. DO NOT RETURN ANY MARKDOWN.
+    Do not grade on function signature or class structure as those are given to the user, and don't grade too harshly on indentation as they are not using an IDE. DO NOT RETURN ANY MARKDOWN.
 
     Structure your feedback as follows:
     
