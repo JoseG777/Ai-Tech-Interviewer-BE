@@ -18,7 +18,7 @@ def generate_problem(
     upcoming_interview,
 ):
     interview_info = (
-        f"Upcoming Interview: This problem is tailored for an upcoming interview with {upcoming_interview}."
+        f"Upcoming Interview: This problem should be tailored for an upcoming interview with {upcoming_interview}. PRIORITIZE THIS"
         if upcoming_interview != "N/A"
         else ""
     )
@@ -27,8 +27,6 @@ def generate_problem(
     medium_percentage = float(medium_ratio) * 100
     hard_percentage = float(hard_ratio) * 100
     overall_percentage = float(overall_ratio) * 100
-    
-    # print("******************\n\n\n\n\n\n",easy_percentage,"\n\n\n\n\n\n******************")
 
     gpt_prompt = f"""
     

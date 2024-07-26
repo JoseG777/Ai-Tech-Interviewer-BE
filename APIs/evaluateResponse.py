@@ -11,19 +11,22 @@ openai.api_key = os.getenv("OPEN_AI_API_KEY")
 def evaluate_response(prompt, user_response):
     gpt_prompt = f"""
     Here is a coding problem and a user's response. Evaluate the response and provide feedback on a scale from 1-10, with 1 being "Needs a lot of work" to 10 being "Excellent". 
-
-    Do not grade on function signature or class structure as those are given to the user. 
-
-    Structure your feedback as follows:
-    Evaluation: [Describe how they did overall]
-    Feedback: [Provide detailed feedback on how they can improve]
-    Final Grade: [Give a single number out of 10. JUST THE NUMBER AS A WHOLE NUMBER]
-
+    
     Problem:
     {prompt}
 
     User's Response:
     {user_response}
+
+    Do not grade on function signature or class structure as those are given to the user. DO NOT RETURN ANY MARKDOWN.
+
+    Structure your feedback as follows:
+    
+    Evaluation: [Describe how they did overall]
+    
+    Feedback: [Provide detailed feedback on how they can improve]
+    
+    Final Grade: [Give a single number out of 10. JUST THE NUMBER AS A WHOLE NUMBER]
     """
 
     response = openai.ChatCompletion.create(
