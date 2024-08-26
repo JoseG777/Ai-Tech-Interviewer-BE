@@ -317,4 +317,3 @@ class UserHistory:
             lc_stats = [0.0, 0.0, 0.0, 0.0] 
 
         return lc_stats
-

@@ -10,10 +10,6 @@ openai.api_key = os.getenv("OPEN_AI_API_KEY")
 def generate_problem(
     user_level_description,
     current_goal,
-    easy_ratio,
-    medium_ratio,
-    hard_ratio,
-    overall_ratio,
     language,
     upcoming_interview,
 ):
@@ -23,10 +19,6 @@ def generate_problem(
         else ""
     )
     
-    easy_percentage = float(easy_ratio) * 100
-    medium_percentage = float(medium_ratio) * 100
-    hard_percentage = float(hard_ratio) * 100
-    overall_percentage = float(overall_ratio) * 100
 
     gpt_prompt = f"""
     
@@ -34,10 +26,6 @@ def generate_problem(
         
         Level: {user_level_description}
         Goal: {current_goal}
-        Easy LeetCode Success Rate: {easy_percentage}%
-        Medium LeetCode Success Rate: {medium_percentage}%
-        Hard LeetCode Success Rate: {hard_percentage}%
-        Overall LeetCode Success Rate: {overall_percentage}%
         {interview_info}
 
         Ensure the problem fits their skill set. If specific data structures or custom objects are needed, provide necessary class definitions or additional code. Only include the specified structure; do not add any notes or markdown. Output your response in the following this structure:

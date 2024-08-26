@@ -10,6 +10,7 @@ from APIs.getLeetCode import getLeetCodeInfo
 from APIs.generateProblems import generate_problem
 from APIs.evaluateResponse import evaluate_response, evaluate_speech, parse_evaluation
 from messaging.emailing import send_email
+from APIs.ai_response import get_ai_response
 
 
 app = Flask(__name__)
@@ -28,30 +29,6 @@ def internal_error(error):
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({"error": "Not found"}), 404
-
-
-def get_ai_response(prompt, problem):
-    system_prompt = f"""
-        You are an interview assistant. You are presenting a coding problem to the user and helping them through the problem. 
-
-        You must not give away the solution directly. If the user asks for hints, provide only subtle hints that guide them in the right direction. Only give hints if the user provides context about their current progress or what they have tried so far. Also, don't answer more than what is needed. If a user asks something that can be answered in a yes or no response, return just yes or no
-
-        Make your answers short and concise. No more than 2 sentences
-
-        Here is the problem: \n\n"
-        {problem}\n\n"
-        User: {prompt}\n\n"
-        Remember, do not give the solution directly.
-        """
-
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt},
-        ],
-    )
-    return response.choices[0].message["content"].strip()
 
 
 @app.route("/", methods=["GET", "HEAD"])
@@ -143,20 +120,12 @@ def generate_problem_endpoint():
             return jsonify({"error": "User not found"}), 404
 
         user_level_description = user[4]
-        overall_ratio = user[5]
-        easy_ratio = user[6]
-        medium_ratio = user[7]
-        hard_ratio = user[8]
         current_goal = user[9]
         upcoming_interview = user[10]
 
         problem = generate_problem(
             user_level_description,
             current_goal,
-            easy_ratio,
-            medium_ratio,
-            hard_ratio,
-            overall_ratio,
             language,
             upcoming_interview,
         )
@@ -233,11 +202,18 @@ def chat():
         data = request.get_json()
         user_message = data.get("message")
         problem = data.get("problem")
-        ai_response = get_ai_response(user_message, problem)
+        previous_ai_response = data.get("previousAIResponse")  
+        
+        print("Received previous AI response:", previous_ai_response)  # Log it here
+        
+        ai_response = get_ai_response(user_message, problem, previous_ai_response)
+        
+        print("Generated AI response:", ai_response)
         return jsonify({"ai_response": ai_response})
     except Exception as e:
         logging.error(f"Failed to get chat response: {str(e)}")
         return jsonify({"message": f"Failed to get chat response: {str(e)}"}), 500
+
 
 
 #**************************** DELETE USER ****************************
