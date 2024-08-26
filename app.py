@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from database.models import User, UserHistory
+from database.models import User, UserHistory, DailyAttempts
 import openai
 import os
 import logging
@@ -169,7 +169,7 @@ def evaluate_response_endpoint():
                 final_speech_grade,
             )
 
-            UserHistory.update_daily_attempts(uid)
+            DailyAttempts.update_daily_attempts(uid)
 
             response_data = {
                 "code_evaluation": {
