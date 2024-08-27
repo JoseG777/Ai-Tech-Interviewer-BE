@@ -9,6 +9,7 @@ openai.api_key = os.getenv("OPEN_AI_API_KEY")
 def get_ai_response(user_message, problem, previous_ai_response):
     if not previous_ai_response:
         previous_ai_response = ""
+        
     try:
         system_prompt = f"""
         You are an interview assistant. You are presenting a coding problem to the user and helping them through the problem.

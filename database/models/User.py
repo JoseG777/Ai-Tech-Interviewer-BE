@@ -17,6 +17,10 @@ class User:
                     easy_ratio FLOAT DEFAULT 0.0,
                     medium_ratio FLOAT DEFAULT 0.0,
                     hard_ratio FLOAT DEFAULT 0.0,
+                    beginner_topics TEXT,  -- Comma-separated list of topics
+                    intermediate_topics TEXT,  -- Comma-separated list of topics
+                    advanced_topics TEXT,  -- Comma-separated list of topics
+                    has_taken_exam BOOLEAN DEFAULT 0,  -- Boolean field for exam status
                     current_goal TEXT,
                     upcoming_interview TEXT,
                     signup_date TEXT NOT NULL DEFAULT (datetime('now'))
@@ -52,7 +56,7 @@ class User:
             conn.commit()
 
     @staticmethod
-    def get_user_id(uid):
+    def get_user(uid):
         with DatabaseConnection() as conn:
             cursor = conn.execute("SELECT * FROM users WHERE uid = ?", (uid,))
             user = cursor.fetchone()
@@ -67,6 +71,15 @@ class User:
             email = cur.fetchone()
 
         return email
+    
+    @staticmethod
+    def get_exam_status(uid):
+        with DatabaseConnection() as conn:
+            cursor = conn.execute(
+                "SELECT has_taken_exam FROM users WHERE uid = ?", (uid,)
+            )
+            exam_status = cursor.fetchone()
+        return exam_status[0] if exam_status else None
 
     @staticmethod
     def update_user(
@@ -98,6 +111,18 @@ class User:
                     hard_ratio,
                     uid,
                 ),
+            )
+            conn.commit()
+    
+    @staticmethod
+    def update_skill_levels(uid, beginner_topics, intermediate_topics, advanced_topics):
+        with DatabaseConnection() as conn:
+            conn.execute(
+                """
+                UPDATE users 
+                SET beginner_topics = ?, intermediate_topics = ?, advanced_topics = ?, has_taken_exam = 1
+                WHERE uid = ?""",
+                (",".join(beginner_topics), ",".join(intermediate_topics), ",".join(advanced_topics), uid)
             )
             conn.commit()
 

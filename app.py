@@ -9,8 +9,8 @@ import logging
 from APIs.getLeetCode import getLeetCodeInfo
 from APIs.generateProblems import generate_problem
 from APIs.evaluateResponse import evaluate_response, evaluate_speech, parse_evaluation
-from messaging.emailing import send_email
 from APIs.ai_response import get_ai_response
+from determine_level import evaluate_technical_exam
 
 
 app = Flask(__name__)
@@ -104,6 +104,25 @@ def log_user():
         return jsonify({"email": email[0]}), 201
     else:
         return jsonify({"error": "Username not found"}), 404
+    
+
+@app.route("/api/get_exam_status", methods=["POST"])
+def get_exam_status():
+    try:
+        data = request.get_json()
+        uid = data.get("uid")
+        if not uid:
+            return jsonify({"message": "Missing uid"}), 400
+
+        exam_status = User.get_exam_status(uid)
+        if exam_status is None:
+            return jsonify({"message": "User not found"}), 404
+
+        return jsonify({"exam_status": exam_status}), 200
+
+    except Exception as e:
+        logging.error(f"Failed to get exam status: {str(e)}")
+        return jsonify({"message": f"Failed to get exam status: {str(e)}"}), 500
 
 
 #**************************** Problem generation / evaluation ****************************
@@ -114,7 +133,7 @@ def generate_problem_endpoint():
         uid = data["uid"]
         language = data["language"]
 
-        user = User.get_user_id(uid)
+        user = User.get_user(uid)
 
         if not user:
             return jsonify({"error": "User not found"}), 404
@@ -204,7 +223,7 @@ def chat():
         problem = data.get("problem")
         previous_ai_response = data.get("previousAIResponse")  
         
-        print("Received previous AI response:", previous_ai_response)  # Log it here
+        print("Received previous AI response:", previous_ai_response) 
         
         ai_response = get_ai_response(user_message, problem, previous_ai_response)
         
@@ -215,6 +234,33 @@ def chat():
         return jsonify({"message": f"Failed to get chat response: {str(e)}"}), 500
 
 
+@app.route("/api/grade_exam", methods=["POST"])
+def grade_exam():
+    try:
+        data = request.get_json()
+        
+        if not data or 'answers' not in data or 'uid' not in data:
+            return jsonify({"message": "Missing information"}), 400
+        
+        answers = data['answers']
+        uid = data['uid']
+        
+        skill_levels = evaluate_technical_exam(answers)
+        
+        User.update_skill_levels(
+            uid,
+            skill_levels["Beginner"],
+            skill_levels["Intermediate"],
+            skill_levels["Advanced"]
+        )
+
+        return jsonify({"message": "Exam graded successfully", "skill_levels": skill_levels}), 200
+        
+    except Exception as e:
+        logging.error(f"Failed to grade exam: {str(e)}")
+        return jsonify({"message": f"Failed to grade exam: {str(e)}"}), 500
+
+    
 
 #**************************** DELETE USER ****************************
 @app.route("/api/deleteUser", methods=["POST"])
@@ -259,6 +305,7 @@ def update_interview():
         return jsonify({"message": f"Failed to update interview: {str(e)}"}), 500
 
 
+'''
 @app.route("/api/updateLevel", methods=["POST"])
 def update_level():
     try:
@@ -271,20 +318,7 @@ def update_level():
     except Exception as e:
         logging.error(f"Failed to update level: {str(e)}")
         return jsonify({"message": f"Failed to update level: {str(e)}"}), 500
-
-
-@app.route("/api/sendEmail", methods=["POST"])
-def send_email_endpoint():
-    try:
-        data = request.get_json()
-        to_email = data["to_email"]
-        subject = data["subject"]
-        body = data["body"]
-        result = send_email(to_email, subject, body)
-        return jsonify({"message": result})
-    except Exception as e:
-        logging.error(f"Failed to send email: {str(e)}")
-        return jsonify({"message": f"Failed to send email: {str(e)}"}), 500
+'''
 
 
 #**************************** Get Info ****************************
@@ -292,7 +326,7 @@ def send_email_endpoint():
 def get_user():
     try:
         uid = request.args.get("uid")
-        user = User.get_user_id(uid)
+        user = User.get_user(uid)
         if not user:
             return jsonify({"error": "User not found"}), 404
 
@@ -326,7 +360,7 @@ def get_user():
 def get_user_history():
     try:
         uid = request.args.get("uid")
-        user = User.get_user_id(uid)
+        user = User.get_user(uid)
         if not user:
             return jsonify({"error": "User not found"}), 404
 
