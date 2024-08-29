@@ -1,9 +1,12 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from database.models import User, UserHistory, DailyAttempts
 import openai
 import os
 import logging
+import jwt
+from datetime import datetime, timezone, timedelta  
+from functools import wraps
 
 # Function Imports
 from APIs.getLeetCode import getLeetCodeInfo
@@ -12,15 +15,17 @@ from APIs.evaluateResponse import evaluate_response, evaluate_speech, parse_eval
 from APIs.ai_response import get_ai_response
 from determine_level import evaluate_technical_exam
 
-
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
 openai.api_key = os.getenv("OPEN_AI_API_KEY")
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")  
+app.config['JWT_EXPIRATION_DELTA'] = timedelta(hours=1) 
 
-logging.basicConfig(level=logging.DEBUG)  # Set logging level to DEBUG
+logging.basicConfig(level=logging.DEBUG)
 
 
+# Error Handlers
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({"error": "Internal server error"}), 500
@@ -31,12 +36,29 @@ def not_found(error):
     return jsonify({"error": "Not found"}), 404
 
 
-@app.route("/", methods=["GET", "HEAD"])
-def index():
-    return jsonify({"message": "Application is running."}), 200
+# ***************** Token Verification Decorator *****************
+def token_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        token = request.cookies.get('token')
+        if not token:
+            logging.debug("Token is missing!")
+            return jsonify({"message": "Token is missing!"}), 403
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            logging.debug(f"Decoded token data: {data}")
+            current_user = User.get_user(data['uid'])
+            if not current_user:
+                raise ValueError("User not found")
+        except Exception as e:
+            logging.error(f"Token is invalid: {str(e)}")
+            return jsonify({"message": f"Token is invalid: {str(e)}"}), 403
+        return f(current_user, *args, **kwargs)
+    return decorated_function
 
 
-#**************************** SIGNING UP / SIGNING IN ****************************
+
+# **************************** SIGNING UP / SIGNING IN ****************************
 @app.route("/api/createUser", methods=["POST"])
 def create_user():
     data = request.get_json()
@@ -60,10 +82,10 @@ def create_user():
 
 
 @app.route("/api/newUser", methods=["POST"])
-def new_user():
+@token_required
+def new_user(current_user):
     try:
         data = request.get_json()
-        uid = data["uid"]
         leetcode_username = data["leetcode_username"]
         coding_level = data["coding_level"]
         goal = data["goal"]
@@ -77,7 +99,7 @@ def new_user():
                 overall_ratio, easy_ratio, medium_ratio, hard_ratio = leetcode_info
 
         User.update_user(
-            uid,
+            current_user[0],  # Use UID from the authenticated user
             leetcode_username,
             coding_level,
             goal,
@@ -98,49 +120,78 @@ def new_user():
 def log_user():
     data = request.get_json()
     username = data.get("username")
-    email = User.get_email(username)
 
-    if email is not None:
-        return jsonify({"email": email[0]}), 201
+    email_record = User.get_email(username)
+
+    if email_record is not None:
+        email = email_record[0] 
+        return jsonify({"email": email}), 200
     else:
         return jsonify({"error": "Username not found"}), 404
-    
 
-@app.route("/api/get_exam_status", methods=["POST"])
-def get_exam_status():
+
+@app.route("/api/authenticate", methods=["POST"])
+def authenticate():
+    data = request.get_json()
+    uid = data.get("uid") 
+
+    if not uid:
+        return jsonify({"error": "Missing UID"}), 400
+
+    user = User.get_user(uid)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    token = jwt.encode(
+        {'uid': uid, 'exp': datetime.now(timezone.utc) + app.config['JWT_EXPIRATION_DELTA']},
+        app.config['SECRET_KEY'],
+        algorithm="HS256"
+    )
+
+    response = make_response(jsonify({"message": "Authentication successful"}))
+    response.set_cookie('token', token, httponly=True, secure=True, samesite='None')  
+
+    return response, 200
+
+
+@app.route("/api/logout", methods=["POST"])
+@token_required
+def logout(current_user):
+    response = jsonify({"message": "Logout successful"})
+    response.set_cookie('token', '', expires=0, httponly=True, secure=True, samesite='None') 
+    return response
+
+
+
+# **************************** AUTH CHECK ****************************
+@app.route("/api/check_auth", methods=["GET"])
+@token_required
+def check_auth(current_user):
+    return jsonify({"message": "Authenticated", "uid": current_user[0]}), 200
+
+
+@app.route("/api/get_exam_status", methods=["GET", "POST"])
+@token_required
+def get_exam_status(current_user):
     try:
-        data = request.get_json()
-        uid = data.get("uid")
-        if not uid:
-            return jsonify({"message": "Missing uid"}), 400
-
-        exam_status = User.get_exam_status(uid)
-        if exam_status is None:
-            return jsonify({"message": "User not found"}), 404
-
+        exam_status = User.get_exam_status(current_user[0])
         return jsonify({"exam_status": exam_status}), 200
-
     except Exception as e:
         logging.error(f"Failed to get exam status: {str(e)}")
         return jsonify({"message": f"Failed to get exam status: {str(e)}"}), 500
 
 
-#**************************** Problem generation / evaluation ****************************
+# **************************** Problem generation / evaluation ****************************
 @app.route("/api/generateProblem", methods=["POST"])
-def generate_problem_endpoint():
+@token_required
+def generate_problem_endpoint(current_user):
     try:
         data = request.get_json()
-        uid = data["uid"]
         language = data["language"]
 
-        user = User.get_user(uid)
-
-        if not user:
-            return jsonify({"error": "User not found"}), 404
-
-        user_level_description = user[4]
-        current_goal = user[9]
-        upcoming_interview = user[10]
+        user_level_description = current_user[4]
+        current_goal = current_user[9]
+        upcoming_interview = current_user[10]
 
         problem = generate_problem(
             user_level_description,
@@ -155,15 +206,15 @@ def generate_problem_endpoint():
 
 
 @app.route("/api/evaluateResponse", methods=["POST"])
-def evaluate_response_endpoint():
+@token_required
+def evaluate_response_endpoint(current_user):
     try:
         data = request.get_json()
         problem = data["problem"]
         response = data["userResponse"]
-        uid = data["uid"]
         speech_input = data.get("speechInput", "N/A")
 
-        if problem and response and uid:
+        if problem and response:
             code_evaluation = evaluate_response(problem, response)
             code_evaluation2, feedback, final_grade = parse_evaluation(code_evaluation)
             final_grade = int(final_grade)
@@ -171,13 +222,11 @@ def evaluate_response_endpoint():
             speech_evaluation2 = speech_feedback = final_speech_grade = None
             if speech_input != "N/A":
                 speech_evaluation = evaluate_speech(problem, response, speech_input)
-                speech_evaluation2, speech_feedback, final_speech_grade = (
-                    parse_evaluation(speech_evaluation)
-                )
+                speech_evaluation2, speech_feedback, final_speech_grade = parse_evaluation(speech_evaluation)
                 final_speech_grade = int(final_speech_grade)
 
             UserHistory.update_history(
-                uid,
+                current_user[0],
                 problem,
                 response,
                 code_evaluation2,
@@ -188,7 +237,7 @@ def evaluate_response_endpoint():
                 final_speech_grade,
             )
 
-            DailyAttempts.update_daily_attempts(uid)
+            DailyAttempts.update_daily_attempts(current_user[0])
 
             response_data = {
                 "code_evaluation": {
@@ -216,18 +265,15 @@ def evaluate_response_endpoint():
 
 
 @app.route("/api/chat", methods=["POST"])
-def chat():
+@token_required
+def chat(current_user):
     try:
         data = request.get_json()
         user_message = data.get("message")
         problem = data.get("problem")
-        previous_ai_response = data.get("previousAIResponse")  
-        
-        print("Received previous AI response:", previous_ai_response) 
-        
+        previous_ai_response = data.get("previousAIResponse")
+
         ai_response = get_ai_response(user_message, problem, previous_ai_response)
-        
-        print("Generated AI response:", ai_response)
         return jsonify({"ai_response": ai_response})
     except Exception as e:
         logging.error(f"Failed to get chat response: {str(e)}")
@@ -235,56 +281,53 @@ def chat():
 
 
 @app.route("/api/grade_exam", methods=["POST"])
-def grade_exam():
+@token_required
+def grade_exam(current_user):
     try:
         data = request.get_json()
-        
-        if not data or 'answers' not in data or 'uid' not in data:
+
+        if not data or 'answers' not in data:
             return jsonify({"message": "Missing information"}), 400
-        
+
         answers = data['answers']
-        uid = data['uid']
-        
+
         skill_levels = evaluate_technical_exam(answers)
-        
+
         User.update_skill_levels(
-            uid,
+            current_user[0],
             skill_levels["Beginner"],
             skill_levels["Intermediate"],
             skill_levels["Advanced"]
         )
 
         return jsonify({"message": "Exam graded successfully", "skill_levels": skill_levels}), 200
-        
+
     except Exception as e:
         logging.error(f"Failed to grade exam: {str(e)}")
         return jsonify({"message": f"Failed to grade exam: {str(e)}"}), 500
 
-    
 
-#**************************** DELETE USER ****************************
+# **************************** DELETE USER ****************************
 @app.route("/api/deleteUser", methods=["POST"])
-def delete_user():
+@token_required
+def delete_user(current_user):
     try:
-        data = request.get_json()
-        uid = data.get("uid")
-
-        User.remove_user(uid)
+        User.remove_user(current_user[0])
         return jsonify({"message": "User removed successfully"}), 201
     except Exception as e:
         logging.error(f"Failed to delete user: {str(e)}")
         return jsonify({"message": f"Failed to delete user: {str(e)}"}), 500
 
 
-#**************************** Update info ****************************
+# **************************** Update info ****************************
 @app.route("/api/updateGoal", methods=["POST"])
-def update_goal():
+@token_required
+def update_goal(current_user):
     try:
         data = request.get_json()
-        uid = data["uid"]
         goal = data["current_goal"]
 
-        User.update_goal(uid, goal)
+        User.update_goal(current_user[0], goal)
         return jsonify({"message": "User's goal updated successfully"}), 201
     except Exception as e:
         logging.error(f"Failed to update goal: {str(e)}")
@@ -292,58 +335,38 @@ def update_goal():
 
 
 @app.route("/api/updateInterview", methods=["POST"])
-def update_interview():
+@token_required
+def update_interview(current_user):
     try:
         data = request.get_json()
-        uid = data["uid"]
         interview = data["upcoming_interview"]
 
-        User.update_interview(uid, interview)
+        User.update_interview(current_user[0], interview)
         return jsonify({"message": "User's interview updated successfully"}), 201
     except Exception as e:
         logging.error(f"Failed to update interview: {str(e)}")
         return jsonify({"message": f"Failed to update interview: {str(e)}"}), 500
 
 
-'''
-@app.route("/api/updateLevel", methods=["POST"])
-def update_level():
-    try:
-        data = request.get_json()
-        uid = data["uid"]
-        level_description = data["level_description"]
-
-        User.update_level(uid, level_description)
-        return jsonify({"message": "User's level updated successfully"}), 201
-    except Exception as e:
-        logging.error(f"Failed to update level: {str(e)}")
-        return jsonify({"message": f"Failed to update level: {str(e)}"}), 500
-'''
-
-
-#**************************** Get Info ****************************
+# **************************** Get Info ****************************
 @app.route("/api/getUsers", methods=["GET"])
-def get_user():
+@token_required
+def get_user(current_user):
     try:
-        uid = request.args.get("uid")
-        user = User.get_user(uid)
-        if not user:
-            return jsonify({"error": "User not found"}), 404
-
-        code_grades = UserHistory.get_code_grades(uid)
-        speech_grades = UserHistory.get_speech_grades(uid)
-        attempts = UserHistory.count_history(uid)
-        lc_stats = UserHistory.get_leetcode_stats(uid)
+        code_grades = UserHistory.get_code_grades(current_user[0])
+        speech_grades = UserHistory.get_speech_grades(current_user[0])
+        attempts = UserHistory.count_history(current_user[0])
+        lc_stats = UserHistory.get_leetcode_stats(current_user[0])
 
         return jsonify(
             {
                 "user": {
-                    "username": user[2],
-                    "leetcode_username": user[3] if user[3] else None, 
-                    "level_description": user[4],
-                    "current_goal": user[9],
-                    "upcoming_interview": user[10],
-                    "signup_date": user[11],
+                    "username": current_user[2],
+                    "leetcode_username": current_user[3] if current_user[3] else None,
+                    "level_description": current_user[4],
+                    "current_goal": current_user[9],
+                    "upcoming_interview": current_user[10],
+                    "signup_date": current_user[11],
                 },
                 "code_grades": code_grades,
                 "speech_grades": speech_grades,
@@ -357,15 +380,10 @@ def get_user():
 
 
 @app.route("/api/getUserHistory", methods=["GET"])
-def get_user_history():
+@token_required
+def get_user_history(current_user):
     try:
-        uid = request.args.get("uid")
-        user = User.get_user(uid)
-        if not user:
-            return jsonify({"error": "User not found"}), 404
-
-        history = UserHistory.get_user_history(uid)
-
+        history = UserHistory.get_user_history(current_user[0])
         return jsonify({"history": history})
     except Exception as e:
         logging.error(f"Failed to get user history: {str(e)}")

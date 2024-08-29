@@ -28,3 +28,4 @@ tqdm==4.66.4
 gunicorn==20.1.0
 sqlitecloud==0.0.78
 Flask-CORS==3.0.10
+pyjwt==2.9.0

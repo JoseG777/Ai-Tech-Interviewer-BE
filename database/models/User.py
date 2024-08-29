@@ -71,6 +71,13 @@ class User:
             email = cur.fetchone()
 
         return email
+
+    @staticmethod
+    def get_user_by_email(email):
+        with DatabaseConnection() as conn:
+            cursor = conn.execute("SELECT * FROM users WHERE email = ?", (email,))
+            user = cursor.fetchone()
+        return user
     
     @staticmethod
     def get_exam_status(uid):
