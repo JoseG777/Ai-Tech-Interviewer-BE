@@ -1,6 +1,7 @@
 import openai
 import os
 from dotenv import load_dotenv
+import random
 
 load_dotenv()
 
@@ -8,22 +9,31 @@ openai.api_key = os.getenv("OPEN_AI_API_KEY")
 
 
 def generate_problem(
-    user_level_description,
+    skill_levels,  
     current_goal,
     language,
     upcoming_interview,
 ):
+    # avoid empty lists
+    valid_skill_levels = {k: v for k, v in skill_levels.items() if v}
+
+    if not valid_skill_levels:
+        return "No valid categories or skill levels available to generate a problem."
+
+    category, user_level_description = random.choice(list(valid_skill_levels.items()))
+    print("\n\n\n\n\n\n\n\n", category, "\n\n\n\n\n\n\n\n", user_level_description)
+
     interview_info = (
         f"Upcoming Interview: This problem should be tailored for an upcoming interview with {upcoming_interview}. PRIORITIZE THIS"
         if upcoming_interview != "N/A"
         else ""
     )
-    
 
     gpt_prompt = f"""
     
         Generate a {language} coding problem tailored to a user's profile and skill level detailed below:
         
+        Category: {category}
         Level: {user_level_description}
         Goal: {current_goal}
         {interview_info}
@@ -47,7 +57,7 @@ def generate_problem(
     """
 
     response = openai.ChatCompletion.create(
-        model="gpt-4o", messages=[{"role": "user", "content": gpt_prompt}]
+        model="gpt-4", messages=[{"role": "user", "content": gpt_prompt}]
     )
     recommendation = response.choices[0].message["content"].strip()
 

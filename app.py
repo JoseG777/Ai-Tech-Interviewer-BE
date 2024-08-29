@@ -189,17 +189,36 @@ def generate_problem_endpoint(current_user):
         data = request.get_json()
         language = data["language"]
 
-        user_level_description = current_user[4]
+        # Retrieve user's current goal and upcoming interview
         current_goal = current_user[9]
         upcoming_interview = current_user[10]
 
+        # Extract beginner, intermediate, and advanced topics from current_user
+        beginner_topics = current_user[11].split(",") if current_user[11] else []
+        intermediate_topics = current_user[12].split(",") if current_user[12] else []
+        advanced_topics = current_user[13].split(",") if current_user[13] else []
+
+        skill_levels = {}
+
+        for topic in beginner_topics:
+            skill_levels[topic.strip()] = "Beginner"
+        for topic in intermediate_topics:
+            skill_levels[topic.strip()] = "Intermediate"
+        for topic in advanced_topics:
+            skill_levels[topic.strip()] = "Advanced"
+        
+        if not skill_levels:
+            return jsonify({"message": "No skill levels available for the user."}), 400
+        
         problem = generate_problem(
-            user_level_description,
+            skill_levels,
             current_goal,
             language,
             upcoming_interview,
         )
+
         return jsonify({"problem": problem})
+
     except Exception as e:
         logging.error(f"Failed to generate problem: {str(e)}")
         return jsonify({"message": f"Failed to generate problem: {str(e)}"}), 500
