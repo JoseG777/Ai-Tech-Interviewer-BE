@@ -145,7 +145,7 @@ class UserHistory:
             ).fetchone()
 
         if lc_ratios:
-            lc_stats = [float(ratio) * 100 for ratio in lc_ratios]
+            lc_stats = [(float(ratio) * 100) if ratio is not None else 0.0 for ratio in lc_ratios]
         else:
             lc_stats = [0.0, 0.0, 0.0, 0.0]
 

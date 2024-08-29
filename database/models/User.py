@@ -1,5 +1,7 @@
 from datetime import datetime
 from database.connection import DatabaseConnection
+from APIs.getLeetCode import getLeetCodeInfo
+import logging
 
 class User:
     @staticmethod
@@ -160,11 +162,34 @@ class User:
             conn.commit()
 
     @staticmethod
-    def update_level(uid, new_level):
+    def update_leetcode_username(uid, leetcode_username):
         with DatabaseConnection() as conn:
             cur = conn.cursor()
+            
+            # Fetch LeetCode stats
+            leetcode_stats = getLeetCodeInfo(leetcode_username)
+            
+            if leetcode_stats == "N/A":
+                logging.error(f"Failed to retrieve LeetCode stats for username: {leetcode_username}")
+                return {"message": "Failed to retrieve LeetCode stats"}, 500
+            
+            overall_ratio, easy_ratio, medium_ratio, hard_ratio = leetcode_stats
+
+            # Update the user with LeetCode username and stats
             cur.execute(
-                """UPDATE users SET user_level_description = ? WHERE uid = ?""",
-                (new_level, uid),
+                """
+                UPDATE users 
+                SET leetcode_username = ?, 
+                    overall_ratio = ?, 
+                    easy_ratio = ?, 
+                    medium_ratio = ?, 
+                    hard_ratio = ? 
+                WHERE uid = ?""",
+                (leetcode_username, overall_ratio, easy_ratio, medium_ratio, hard_ratio, uid)
             )
             conn.commit()
+            logging.info(f"Successfully updated LeetCode username and stats for user: {uid}")
+
+        return {"message": "LeetCode username and stats updated successfully"}, 201
+
+

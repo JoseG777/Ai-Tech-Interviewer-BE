@@ -348,15 +348,32 @@ def update_interview(current_user):
         return jsonify({"message": f"Failed to update interview: {str(e)}"}), 500
 
 
+@app.route("/api/addLeetCode", methods=["POST"])
+@token_required
+def add_leetcode(current_user):
+    try:
+        data = request.get_json()
+        leetcode_username = data.get("leetcode_username")
+
+        if not leetcode_username:
+            return jsonify({"message": "LeetCode username is required"}), 400
+
+        User.update_leetcode_username(current_user[0], leetcode_username)
+        return jsonify({"message": "LeetCode username updated successfully"}), 201
+    except Exception as e:
+        logging.error(f"Failed to update LeetCode username: {str(e)}")
+        return jsonify({"message": f"Failed to update LeetCode username: {str(e)}"}), 500
+
+
 # **************************** Get Info ****************************
 @app.route("/api/getUsers", methods=["GET"])
 @token_required
 def get_user(current_user):
     try:
-        code_grades = UserHistory.get_code_grades(current_user[0])
-        speech_grades = UserHistory.get_speech_grades(current_user[0])
-        attempts = UserHistory.count_history(current_user[0])
-        lc_stats = UserHistory.get_leetcode_stats(current_user[0])
+        code_grades = UserHistory.get_code_grades(current_user[0]) or []
+        speech_grades = UserHistory.get_speech_grades(current_user[0]) or []
+        attempts = UserHistory.count_history(current_user[0]) or []
+        lc_stats = UserHistory.get_leetcode_stats(current_user[0]) or [0.0, 0.0, 0.0, 0.0]
 
         return jsonify(
             {
@@ -377,6 +394,7 @@ def get_user(current_user):
     except Exception as e:
         logging.error(f"Failed to get user: {str(e)}")
         return jsonify({"message": f"Failed to get user: {str(e)}"}), 500
+
 
 
 @app.route("/api/getUserHistory", methods=["GET"])
